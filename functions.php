@@ -248,7 +248,10 @@ function so_assets() {
 	wp_enqueue_style( 'so-fonts', $uri . '/assets/css/fonts.css', array(), so_asset_version( '/assets/css/fonts.css' ) );
 	wp_enqueue_style( 'so-theme', $uri . '/assets/css/theme.css', array( 'so-fonts' ), so_asset_version( '/assets/css/theme.css' ) );
 	wp_enqueue_style( 'so-design', $uri . '/assets/css/design.css', array( 'so-theme' ), so_asset_version( '/assets/css/design.css' ) );
-	wp_enqueue_style( 'so-style', get_stylesheet_uri(), array( 'so-design' ), so_asset_version( '/style.css' ) );
+	// Generated: re-asserts the design's layout utilities that Elementor's own
+	// sheets would otherwise outrank (see build/layout_overrides.py).
+	wp_enqueue_style( 'so-layout', $uri . '/assets/css/layout.css', array( 'so-design' ), so_asset_version( '/assets/css/layout.css' ) );
+	wp_enqueue_style( 'so-style', get_stylesheet_uri(), array( 'so-layout' ), so_asset_version( '/style.css' ) );
 
 	wp_enqueue_script( 'so-theme', $uri . '/assets/js/theme.js', array(), so_asset_version( '/assets/js/theme.js' ), true );
 	wp_script_add_data( 'so-theme', 'strategy', 'defer' );
