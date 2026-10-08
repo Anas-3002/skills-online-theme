@@ -1,0 +1,335 @@
+[
+ {
+  "slug": "senior-engineer-interview-signals",
+  "title": "What Senior and Staff Interviews Really Evaluate: Signals That Earn the Offer",
+  "meta_description": "What senior and staff interview loops really measure: proof of work, trade-off reasoning, production debugging, portfolios, and fair-pay research.",
+  "excerpt": "What senior and staff interview loops actually evaluate, and how to show proof of work, reason about trade-offs, and research fair pay.",
+  "category": "Hiring Insights",
+  "tags": [
+   "hiring",
+   "interviews",
+   "career",
+   "portfolios"
+  ],
+  "reading_time": "8 min read",
+  "words": 1664,
+  "sources": [
+   {
+    "title": "Stack Overflow Developer Survey 2024 \u2014 Work and Salary",
+    "url": "https://survey.stackoverflow.co/2024/work/"
+   },
+   {
+    "title": "Levels.fyi \u2014 About and Verification Methodology",
+    "url": "https://www.levels.fyi/about/"
+   },
+   {
+    "title": "Google Careers \u2014 Our Hiring Process",
+    "url": "https://careers.google.com/how-we-hire/"
+   },
+   {
+    "title": "GitLab Handbook \u2014 Interviewing",
+    "url": "https://handbook.gitlab.com/handbook/hiring/interviewing/"
+   },
+   {
+    "title": "PostHog Handbook \u2014 Engineering Hiring",
+    "url": "https://posthog.com/handbook/people/hiring-process/engineering-hiring"
+   }
+  ],
+  "sticky": true
+ },
+ {
+  "slug": "caching-strategies-and-cache-stampedes",
+  "title": "Caching Strategies That Hold Under Load: Stampedes, TTLs, and Hot Keys",
+  "meta_description": "Cache patterns and their failure modes, TTL jitter, stampede and thundering-herd protection, invalidation, hot-key sharding, and how to measure hit rate.",
+  "excerpt": "Caching layers that hold under load: cache patterns and their failure modes, TTL jitter, stampede protection, invalidation, hot keys, and honest metrics.",
+  "category": "Full-Stack & Cloud Architecture",
+  "tags": [
+   "caching",
+   "Redis",
+   "distributed systems",
+   "performance"
+  ],
+  "reading_time": "8 min read",
+  "words": 1697,
+  "sources": [
+   {
+    "title": "Client-side caching reference",
+    "url": "https://redis.io/docs/latest/develop/reference/client-side-caching/"
+   },
+   {
+    "title": "SET",
+    "url": "https://redis.io/docs/latest/commands/set/"
+   },
+   {
+    "title": "EXPIRE",
+    "url": "https://redis.io/docs/latest/commands/expire/"
+   },
+   {
+    "title": "Distributed Locks with Redis",
+    "url": "https://redis.io/docs/latest/develop/use/patterns/distributed-locks/"
+   },
+   {
+    "title": "HTTP caching - MDN Web Docs",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching"
+   },
+   {
+    "title": "RFC 9111: HTTP Caching",
+    "url": "https://www.rfc-editor.org/rfc/rfc9111.html"
+   }
+  ],
+  "sticky": false
+ },
+ {
+  "slug": "kubernetes-terraform-gitops-promotion",
+  "title": "From Hand-Managed Clusters to Terraform and GitOps: A Reproducible Promotion Path",
+  "meta_description": "A reproducible path from hand-managed clusters to Terraform modules and GitOps: remote state, PR-based promotion, drift detection, secrets, and self-service.",
+  "excerpt": "Provision with Terraform modules, promote through Git pull requests, reconcile with Argo CD or Flux, and let app teams deploy without cluster-admin.",
+  "category": "DevOps & Kubernetes",
+  "tags": [
+   "Kubernetes",
+   "Terraform",
+   "GitOps",
+   "platform engineering"
+  ],
+  "reading_time": "9 min read",
+  "words": 1688,
+  "sources": [
+   {
+    "title": "Managing Workloads | Kubernetes",
+    "url": "https://kubernetes.io/docs/concepts/cluster-administration/manage-deployment/"
+   },
+   {
+    "title": "Secrets | Kubernetes",
+    "url": "https://kubernetes.io/docs/concepts/configuration/secret/"
+   },
+   {
+    "title": "State: Remote Storage | Terraform",
+    "url": "https://developer.hashicorp.com/terraform/language/state/remote"
+   },
+   {
+    "title": "Module Composition | Terraform",
+    "url": "https://developer.hashicorp.com/terraform/language/modules/develop/composition"
+   },
+   {
+    "title": "Argo CD Overview",
+    "url": "https://argo-cd.readthedocs.io/en/stable/"
+   },
+   {
+    "title": "Core Concepts | Flux",
+    "url": "https://fluxcd.io/flux/concepts/"
+   }
+  ],
+  "sticky": false
+ },
+ {
+  "slug": "system-design-interview-monolith-to-microservices",
+  "title": "From Monolith to Microservices: Answering the System-Design Interview at Scale",
+  "meta_description": "How to answer a system-design interview that scales a monolith: boundaries, sync vs async, data ownership, idempotency, caching, and observability.",
+  "excerpt": "Decompose a monolith under 10x traffic: where the seams are, when to split synchronously vs asynchronously, and what interviewers actually score.",
+  "category": "Full-Stack & Cloud Architecture",
+  "tags": [
+   "system design",
+   "microservices",
+   "scalability",
+   "interviews"
+  ],
+  "reading_time": "8 min read",
+  "words": 1697,
+  "sources": [
+   {
+    "title": "Microservices (Martin Fowler & James Lewis)",
+    "url": "https://martinfowler.com/articles/microservices.html"
+   },
+   {
+    "title": "Monolith First (Martin Fowler)",
+    "url": "https://martinfowler.com/bliki/MonolithFirst.html"
+   },
+   {
+    "title": "Pattern: Database per service (microservices.io)",
+    "url": "https://microservices.io/patterns/data/database-per-service.html"
+   },
+   {
+    "title": "Implementing Microservices on AWS (AWS Whitepaper)",
+    "url": "https://docs.aws.amazon.com/whitepapers/latest/microservices-on-aws/microservices-on-aws.html"
+   },
+   {
+    "title": "Timeouts, retries, and backoff with jitter (AWS Builders' Library)",
+    "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/"
+   },
+   {
+    "title": "HTTP caching (MDN Web Docs)",
+    "url": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/Caching"
+   }
+  ],
+  "sticky": false
+ },
+ {
+  "slug": "production-rag-vector-search",
+  "title": "Production RAG: Chunking, Hybrid Search, Re-Ranking, and pgvector Tuning That Holds Up",
+  "meta_description": "How production RAG pipelines avoid degradation: chunking, hybrid retrieval, re-ranking, pgvector HNSW tuning, evaluation harnesses, and real failure modes.",
+  "excerpt": "Chunking, hybrid retrieval, re-ranking, pgvector tuning, evaluation harnesses, and the failure modes that quietly break RAG in production.",
+  "category": "AI & LLM Systems",
+  "tags": [
+   "RAG",
+   "vector search",
+   "pgvector",
+   "LLM",
+   "hybrid retrieval"
+  ],
+  "reading_time": "10 min read",
+  "words": 1595,
+  "sources": [
+   {
+    "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (Lewis et al., arXiv:2005.11401)",
+    "url": "https://arxiv.org/abs/2005.11401"
+   },
+   {
+    "title": "pgvector: Open-source vector similarity search for Postgres (HNSW index parameters)",
+    "url": "https://github.com/pgvector/pgvector"
+   },
+   {
+    "title": "PostgreSQL Documentation: Preferred Index Types for Text Search (GIN and GiST)",
+    "url": "https://www.postgresql.org/docs/current/textsearch-indexes.html"
+   },
+   {
+    "title": "Lost in the Middle: How Language Models Use Long Contexts (arXiv:2307.03172)",
+    "url": "https://arxiv.org/abs/2307.03172"
+   },
+   {
+    "title": "OWASP Gen AI Security Project: LLM01 Prompt Injection",
+    "url": "https://genai.owasp.org/llmrisk/llm01-prompt-injection/"
+   },
+   {
+    "title": "Ragas: Evaluation toolkit for LLM applications with reference-free metrics",
+    "url": "https://github.com/explodinggradients/ragas"
+   }
+  ],
+  "sticky": false
+ },
+ {
+  "slug": "slo-driven-observability-node-services",
+  "title": "SLO-Driven Observability for Node.js Services: From SLIs to On-Call",
+  "meta_description": "Define user-facing SLIs and error budgets for a Node.js API, instrument with OpenTelemetry, control cardinality, and alert on burn rate, not noise.",
+  "excerpt": "Run a Node.js service to an SLO: pick user-facing SLIs, control metric cardinality, alert on error-budget burn rate, and trace p99 regressions to the cause.",
+  "category": "DevOps & Kubernetes",
+  "tags": [
+   "SRE",
+   "SLO",
+   "observability",
+   "Node.js"
+  ],
+  "reading_time": "9 min read",
+  "words": 1693,
+  "sources": [
+   {
+    "title": "Implementing SLOs",
+    "url": "https://sre.google/workbook/implementing-slos/"
+   },
+   {
+    "title": "Alerting on SLOs",
+    "url": "https://sre.google/workbook/alerting-on-slos/"
+   },
+   {
+    "title": "OpenTelemetry Metrics",
+    "url": "https://opentelemetry.io/docs/concepts/signals/metrics/"
+   },
+   {
+    "title": "Prometheus: Instrumentation",
+    "url": "https://prometheus.io/docs/practices/instrumentation/"
+   },
+   {
+    "title": "Grafana Alerting",
+    "url": "https://grafana.com/docs/grafana/latest/alerting/"
+   },
+   {
+    "title": "Node.js: Diagnostics Channel",
+    "url": "https://nodejs.org/api/diagnostics_channel.html"
+   }
+  ],
+  "sticky": false
+ },
+ {
+  "slug": "staff-engineering-rfc-design-docs",
+  "title": "The Design-Doc and RFC Discipline That Separates Senior from Staff Engineers",
+  "meta_description": "Design docs, RFCs, and ADRs are how staff engineers scale judgment beyond their own team. A practical guide to structure, async review, and decision records.",
+  "excerpt": "The design-doc and RFC discipline that separates senior from staff: proposal structure, async review, disagreement, and durable decision records.",
+  "category": "Leadership & Staff Path",
+  "tags": [
+   "staff engineer",
+   "RFC",
+   "design docs",
+   "technical leadership"
+  ],
+  "reading_time": "8 min read",
+  "words": 1512,
+  "sources": [
+   {
+    "title": "Writing engineering strategy - StaffEng (Will Larson)",
+    "url": "https://staffeng.com/guides/engineering-strategy"
+   },
+   {
+    "title": "Architecture Decision Record - Martin Fowler",
+    "url": "https://martinfowler.com/bliki/ArchitectureDecisionRecord.html"
+   },
+   {
+    "title": "Design Docs at Google - Malte Ubl",
+    "url": "https://www.industrialempathy.com/posts/design-docs-at-google/"
+   },
+   {
+    "title": "Companies Using RFCs or Design Docs - The Pragmatic Engineer",
+    "url": "https://blog.pragmaticengineer.com/rfcs-and-design-docs/"
+   },
+   {
+    "title": "Scaling Engineering Teams via RFCs: Writing Things Down - The Pragmatic Engineer",
+    "url": "https://blog.pragmaticengineer.com/scaling-engineering-teams-via-writing-things-down-rfcs/"
+   },
+   {
+    "title": "Documenting Architecture Decisions - Michael Nygard",
+    "url": "https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions"
+   }
+  ],
+  "sticky": false
+ },
+ {
+  "slug": "zero-downtime-postgres-migrations",
+  "title": "Zero-Downtime PostgreSQL Migrations on Large, Live Tables",
+  "meta_description": "Run schema migrations on large, live PostgreSQL tables without downtime: lock levels, CREATE INDEX CONCURRENTLY, safe NOT NULL, and batched backfills.",
+  "excerpt": "Which PostgreSQL DDL takes which lock, why CREATE INDEX CONCURRENTLY cannot run in a transaction, and how to add columns and NOT NULL safely on live tables.",
+  "category": "Full-Stack & Cloud Architecture",
+  "tags": [
+   "PostgreSQL",
+   "migrations",
+   "schema changes",
+   "zero downtime"
+  ],
+  "reading_time": "9 min read",
+  "words": 1753,
+  "sources": [
+   {
+    "title": "PostgreSQL: Explicit Locking \u2014 Table-Level Locks",
+    "url": "https://www.postgresql.org/docs/current/explicit-locking.html"
+   },
+   {
+    "title": "PostgreSQL: ALTER TABLE (ADD COLUMN defaults, NOT VALID, VALIDATE CONSTRAINT)",
+    "url": "https://www.postgresql.org/docs/current/sql-altertable.html"
+   },
+   {
+    "title": "PostgreSQL: CREATE INDEX (CONCURRENTLY)",
+    "url": "https://www.postgresql.org/docs/current/sql-createindex.html"
+   },
+   {
+    "title": "PostgreSQL: Client Connection Defaults \u2014 lock_timeout, statement_timeout",
+    "url": "https://www.postgresql.org/docs/current/runtime-config-client.html"
+   },
+   {
+    "title": "PostgreSQL 11 Release Notes \u2014 non-null default without a table rewrite",
+    "url": "https://www.postgresql.org/docs/release/11.0/"
+   },
+   {
+    "title": "PostgreSQL 12 Release Notes \u2014 SET NOT NULL scan avoidance, REINDEX CONCURRENTLY",
+    "url": "https://www.postgresql.org/docs/release/12.0/"
+   }
+  ],
+  "sticky": false
+ }
+]

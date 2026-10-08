@@ -1,0 +1,189 @@
+[
+ {
+  "slug": "home",
+  "title": "Home",
+  "meta_title": "Home",
+  "meta_description": "Skills Online runs cohort-based engineering tracks with weekly 1-on-1 staff-engineer mentorship, reviewed production systems and accredited credentials.",
+  "parent": "",
+  "template": "elementor_canvas",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 71320
+ },
+ {
+  "slug": "courses-and-tracks",
+  "title": "Courses & Tracks",
+  "meta_title": "Courses & Tracks",
+  "meta_description": "Four career tracks in software engineering, cloud and DevOps, applied AI and engineering leadership \u2014 built on reviewed production work, not video lectures.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 28283
+ },
+ {
+  "slug": "applied-ai-and-machine-learning",
+  "title": "Applied AI & Large Language Models",
+  "meta_title": "Applied AI & Large Language Models",
+  "meta_description": "Fine-tune open-weight LLMs, build retrieval pipelines that survive production traffic, tune vector indexes, and ship autonomous agents on Kubernetes.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 22541
+ },
+ {
+  "slug": "software-engineering",
+  "title": "Full-Stack Software Engineering",
+  "meta_title": "Full-Stack Software Engineering",
+  "meta_description": "Build high-throughput services in Go and TypeScript, event-driven backends with a message broker, and a modern frontend that stays fast under real data.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 22178
+ },
+ {
+  "slug": "cloud-and-devops",
+  "title": "Cloud, DevOps & Platform Engineering",
+  "meta_title": "Cloud, DevOps & Platform Engineering",
+  "meta_description": "Provision reproducible infrastructure, run Kubernetes you can reason about, and build the delivery pipeline that lets product teams ship without a ticket q",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 22266
+ },
+ {
+  "slug": "tech-leadership",
+  "title": "Engineering Leadership & Architecture",
+  "meta_title": "Engineering Leadership & Architecture",
+  "meta_description": "Move from writing code to setting direction: architecture decisions, written proposals, mentoring, incident command and the economics of a technical roadma",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 22414
+ },
+ {
+  "slug": "enterprise",
+  "title": "Enterprise",
+  "meta_title": "Enterprise",
+  "meta_description": "Private engineering cohorts with skills-matrix reporting, SSO integration and curriculum written against your repositories and constraints.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 13353
+ },
+ {
+  "slug": "pillars-and-outcomes",
+  "title": "Pillars & Outcomes",
+  "meta_title": "Pillars & Outcomes",
+  "meta_description": "The four pillars and the method behind every Skills Online track: production-grade curriculum, 1-on-1 mentorship, proof of work and direct hiring.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 19360
+ },
+ {
+  "slug": "pricing",
+  "title": "Pricing",
+  "meta_title": "Pricing",
+  "meta_description": "Tuition for every Skills Online track: monthly or upfront, interest-free instalments, a 14-day unconditional refund window and a scholarship fund.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 9352
+ },
+ {
+  "slug": "reviews",
+  "title": "Reviews",
+  "meta_title": "Reviews",
+  "meta_description": "Learner stories from Skills Online cohorts and the honest labelling behind them: what graduates build, and what we will not claim about outcomes.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 10174
+ },
+ {
+  "slug": "contact",
+  "title": "Contact",
+  "meta_title": "Contact",
+  "meta_description": "Contact Skills Online admissions about tracks, cohort dates, tuition, scholarships or the enterprise programme. Replies within one business day.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 7149
+ },
+ {
+  "slug": "sign-in",
+  "title": "Sign In",
+  "meta_title": "Sign In",
+  "meta_description": "Sign in to the Skills Online learner portal to reach your cohort workspace, code sandbox, review queue and mentor schedule.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 2632
+ },
+ {
+  "slug": "apply",
+  "title": "Apply",
+  "meta_title": "Apply",
+  "meta_description": "Apply to a Skills Online cohort: a short application reviewed by a senior engineer, with no application fee and no obligation to enrol.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 6581
+ },
+ {
+  "slug": "results-and-disclosures",
+  "title": "Results & Disclosures",
+  "meta_title": "Results & Disclosures",
+  "meta_description": "How to read the figures on this site: what Skills Online publishes as fact, what is illustrative, and exactly how our guarantees are triggered.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 4597
+ },
+ {
+  "slug": "privacy-policy",
+  "title": "Privacy Policy",
+  "meta_title": "Privacy Policy",
+  "meta_description": "How Skills Online collects, protects and retains learning telemetry, personal records and code authored during a programme \u2014 in plain English.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 25315
+ },
+ {
+  "slug": "terms-of-service",
+  "title": "Terms of Service",
+  "meta_title": "Terms of Service",
+  "meta_description": "The terms governing use of the Skills Online website and participation in a programme, including payment, refunds, deferrals and IP ownership.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 5473
+ },
+ {
+  "slug": "campus-safety",
+  "title": "Campus Safety",
+  "meta_title": "Campus Safety",
+  "meta_description": "Community conduct, platform safety and how to report a concern at Skills Online, including the route for reports about the programme team.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": false,
+  "bytes": 3188
+ }
+]

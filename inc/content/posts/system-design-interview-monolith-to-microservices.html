@@ -1,0 +1,116 @@
+<p>A system-design interview that opens with a monolith and a traffic number is not asking whether you can recite a microservices catalogue. It is asking whether you can find the load-bearing seams in a running system, decide which are worth cutting, and keep the business correct while you cut them. The monolith is the interesting part: it already works, and every service you extract buys isolation at the cost of a network hop, a weaker consistency model, and another thing to run and page on. Your job is to make that trade explicit, not to prove you have heard of Kafka.</p>
+
+<p>The useful frame is that scale is a forcing function, not a goal. A monolith at 500 requests per second on one database is often fixed by a read replica, a cache, and one bad query. Decomposition pays for itself when writes contend on the same rows, when one slow feature starves the others, or when teams block each other's releases. Below, one e-commerce monolith is worked through a 10x traffic event: boundaries, communication, data ownership, and failure isolation at each step.</p>
+
+<h2>What interviewers actually evaluate</h2>
+
+<p>Four things get scored, and they are not the things candidates optimise for. Interviewers listen for whether you start from measured data — a traffic profile, a latency budget, where the database actually spends its time — or from a favourite diagram. They listen for failure reasoning: what happens when a dependency dies. They listen for a precise consistency requirement, and for a stated reason behind each split: independent scaling, fault isolation, team autonomy, or a genuinely different storage need.</p>
+
+<p>Candidates usually optimise for the opposite: naming the most technologies, drawing the most boxes, and defaulting to microservices, event sourcing, and Kubernetes before establishing any constraint. The senior signal is narrowing: "I would keep this in the monolith until X, then extract Y because Z" scores better than a decomposition you cannot justify. Martin Fowler's "Monolith First" essay makes the point bluntly: boundaries are much cheaper to refactor inside one process than across a network.</p>
+
+<blockquote>Patterns are vocabulary, not answers. An interviewer is testing whether you can choose, justify, and price a constraint — not whether you can define a microservice.</blockquote>
+
+<h2>Finding seams before drawing services</h2>
+
+<h3>Domain seams, not technical layers</h3>
+
+<p>Fowler and Lewis define services as components organised around business capabilities, and the boundaries that survive are the ones that correspond to domain seams — the bounded contexts of Domain-Driven Design. A "database service" or a "utils service" that everything calls is a technical layer wearing a service costume; it couples every caller to its internals and changes for everyone at once.</p>
+
+<h3>A test for a boundary</h3>
+
+<p>Two questions decide whether a module is a service candidate. Can it be deployed without a coordinated deploy of anything else? Does it own its data, or does it reach into another module's tables? If both hold, extract it. If a proposed boundary needs a distributed transaction to hold an invariant, you drew it in the wrong place or the invariant is genuinely global — a consistency problem, not a deployment problem.</p>
+
+<h2>Worked example: a monolith at 10x traffic</h2>
+
+<p><strong>Setup.</strong> An online store: one application process, one PostgreSQL primary, a shared worker pool, peak around 800 requests per second, p99 API latency of 400 ms. Marketing lands a campaign; forecast is roughly 8,000 req/s peak for two weeks. Catalogue reads dominate, about 90 percent of traffic; checkout writes are small in volume but must never corrupt.</p>
+
+<h3>Step 0 — Measure, then cache the read path</h3>
+
+<p>Before extracting anything, find the top queries. Catalogue pages re-render the same rows, so put a CDN and a shared cache in front, keyed by product id with a short TTL and eviction on write. MDN's HTTP caching guide is the reference for the headers: <code>Cache-Control: public, max-age=60, stale-while-revalidate=30</code> serves fast while a refresh happens in the background. Add a read replica for what still misses. This absorbs most read amplification for near-zero architectural cost and buys time for the harder work.</p>
+
+<h3>Step 1 — Extract the first service, for isolation not scale</h3>
+
+<p>Checkout is roughly 2 percent of traffic but the source of most pile-ups: payment calls are slow, and when they hang they hold connections the catalogue path needs. Extract checkout into its own deployable with its own connection pool and timeouts. Now a payment-provider slowdown degrades checkout only; browse stays up. The justification is failure isolation — "scaling checkout" is a weak reason at 2 percent of traffic.</p>
+
+<h3>Step 2 — Pick synchronous or asynchronous per interaction</h3>
+
+<p>Checkout still needs to reserve inventory and take payment. Keep user-facing, read-like interactions synchronous — the user is waiting and wants a yes or no now. Make reconcilable side effects asynchronous through a durable queue or log: confirmation email, analytics events, loyalty points, warehouse sync. If the queue backs up, the customer still gets their order and the email is merely late. Naming which interactions may be eventually consistent, and which may not, is what the interviewer is listening for.</p>
+
+<h3>Step 3 — Data ownership and a reversible migration</h3>
+
+<p>Checkout owns orders and payments, catalogue owns products, inventory owns stock. Do not share tables. Migrate in independently reversible expand/contract stages:</p>
+
+<ol>
+<li><strong>Dual-write.</strong> The monolith keeps owning the table; the new service writes its own copy behind a feature flag.</li>
+<li><strong>Backfill and verify.</strong> Copy history, then run a reconciliation job comparing both stores until drift reaches zero.</li>
+<li><strong>Switch reads.</strong> Point the service's reads at its own store; keep the old write path warm.</li>
+<li><strong>Remove the old path</strong> only after drift stays at zero for a defined window.</li>
+</ol>
+
+<p>The candidate who says "cut over in one deploy and drop the old tables" is describing the migration that takes the site down.</p>
+
+<h3>Step 4 — Freeze the invariant, not the table</h3>
+
+<p>"You cannot oversell stock" spans catalogue and inventory. Rather than reaching for a distributed transaction, enforce it where the stock is owned, with one atomic conditional update:</p>
+
+<pre><code>UPDATE inventory
+   SET available = available - $1
+ WHERE sku = $2
+   AND available &gt;= $1;
+-- 0 rows affected means insufficient stock; the caller compensates
+-- (release the reservation, refund the charge) instead of retrying.
+</code></pre>
+
+<p>For a workflow that spans services — reserve, charge, confirm — model it as a saga with explicit compensating actions, and say out loud that intermediate states are visible to users and dashboards. That visible inconsistency is the honest price of not holding a distributed lock.</p>
+
+<h2>Synchronous vs asynchronous communication</h2>
+
+<p>Reach for asynchronous messaging when the caller does not need the answer to continue, when work is slow or bursty, or when several consumers react to one event. Keep synchronous calls for read paths and anything a user is blocked on. Two rules prevent most mistakes: never loop synchronous calls where a batch or a single event would do, and never write an asynchronous consumer that is not idempotent.</p>
+
+<table>
+<thead>
+<tr><th>Concern</th><th>Synchronous (HTTP/gRPC)</th><th>Asynchronous (queue/event log)</th></tr>
+</thead>
+<tbody>
+<tr><td>Failure mode</td><td>Caller blocks; one slow dependency can cascade</td><td>Caller decoupled; consumer must tolerate duplicates and reordering</td></tr>
+<tr><td>Latency</td><td>Bounded by the slowest dependency in the chain</td><td>Fast to accept; adds eventual consistency</td></tr>
+<tr><td>Consistency</td><td>Read-your-writes is simple</td><td>Eventually consistent; needs reconciliation</td></tr>
+<tr><td>Best for</td><td>Reads, user-facing queries, validation</td><td>Side effects, fan-out, slow or bursty work</td></tr>
+</tbody>
+</table>
+
+<h2>Idempotency, retries, and backpressure</h2>
+
+<p>A timeout is not a failure; it is an unknown — the write may already have happened. AWS's Builders' Library guidance is to treat APIs with side effects as unsafe to retry unless they provide idempotency, and to retry at a single layer rather than multiplying attempts at every hop. The mechanism is an idempotency key the server claims exactly once:</p>
+
+<pre><code>-- The unique constraint IS the mechanism, not a check-then-insert race.
+CREATE TABLE idempotency_keys (
+  key          text PRIMARY KEY,
+  request_hash text NOT NULL,
+  response     jsonb,
+  created_at   timestamptz NOT NULL DEFAULT now()
+);
+
+INSERT INTO idempotency_keys (key, request_hash)
+VALUES ($1, $2)
+ON CONFLICT (key) DO NOTHING
+RETURNING key;
+-- 1 row  -> first attempt: do the work, then store the response.
+-- 0 rows -> a prior attempt claimed the key: return the stored response.
+</code></pre>
+
+<p>Pair retries with exponential backoff and jitter so a synchronized burst cannot hammer a struggling dependency. Backpressure is the other half: bound every queue, shed load early, and let a failing health check stop sending traffic to an unhealthy instance rather than let it accept requests it cannot finish.</p>
+
+<h2>Caching layers and their failure mode</h2>
+
+<p>Caches stack: browser and CDN at the edge, a shared application cache such as Redis, and the database buffer pool. Every layer needs a TTL and an invalidation story, because the hard part is not filling a cache but knowing when it is wrong. Never place personalised data in a shared cache. And plan for a cold or dead cache: on restart the origin must survive the thundering herd, which means request coalescing so one query fills the hole while the rest wait.</p>
+
+<h2>Observability: how you know any of this worked</h2>
+
+<p>You cannot claim failure isolation without evidence. Emit metrics, structured logs, and distributed traces carrying one request id across every hop, then alert on the four golden signals — latency split across p50 and p99, traffic, errors, saturation — and on symptoms users feel. When checkout's error rate rises while catalogue latency stays flat, the isolation is confirmed by a dashboard, not an argument.</p>
+
+<h2>What to say when you have two minutes left</h2>
+
+<blockquote>I would cache and add a read replica before extracting anything, then extract checkout first for isolation, keeping reads synchronous and side effects asynchronous. Each service owns its data and migrates in reversible stages. The one cross-service invariant, stock, is enforced atomically where the data lives, and the rest is a saga with compensations. I would watch the golden signals to confirm isolation holds.</blockquote>
+
+<p>That paragraph is the shape of a strong answer: a constraint, a decision, a price, and a way to verify it. If you want to rehearse this kind of reasoning with feedback, our <a href="/courses-and-tracks/">tracks</a> pair the architecture material with live design reviews, the <a href="/pricing/">pricing</a> page lists cohort and mentorship options, and our <a href="/pillars-and-outcomes/">methodology</a> explains how each session maps to an engineering outcome rather than a memorised pattern.</p>

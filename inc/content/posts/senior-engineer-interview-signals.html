@@ -1,0 +1,61 @@
+<p>Senior and staff interview loops are not harder versions of junior loops. They are a different instrument. At the junior end, a panel mostly asks, "can this person build the thing?" At the senior end, it assumes you can build the thing and spends the time looking for evidence that you can decide <em>what</em> to build, explain why, and carry it through ambiguity with other people. That is why a portfolio of shipped, documented work usually reads louder to a hiring panel than a wall of certificates: credentials prove attendance, proof of work proves judgement.</p>
+
+<p>What follows walks through what these loops actually measure — proof of work over credentials, what take-homes and live pairing each reveal, how to narrate a trade-off, how to debug a production incident while someone watches, behavioural answers that name scope and outcome, the signals that cost candidates an offer, questions that reveal a team's engineering health, and how to benchmark fair pay from public data.</p>
+
+<h2>Proof of work beats credentials</h2>
+<p>Panels read artifacts looking for evidence, not decoration. A public repository with a readable README, a pull request thread where you defend a design choice and change your mind, an incident write-up that separates cause from blame, or a design doc that names the option you rejected — these do more than any certificate. PostHog's public engineering hiring handbook looks for someone who has built something from scratch, ideally with minimal outside help, and rates the ability to pick up a new stack quickly above experience with the exact technologies in use. GitLab's handbook leans the same way — it weights written communication heavily, which is why a clean commit history, tested code, and documentation a stranger can follow are scored, not just correctness.</p>
+<p>Open-source reads well when it shows judgement, not volume: one well-argued PR against a widely used project beats fifty typo fixes. If your best work sits behind a private employer, share what you can — a redacted architecture diagram, a sanitised postmortem, or a short write-up of the problem, your constraints, and the outcome. Google's own advanced-level job descriptions describe the bar as "owning outcomes and decision making, solving ambiguous problems and influencing stakeholders" — the panel is trying to verify that sentence about you.</p>
+
+<h2>Take-home vs live pairing: what each one actually evaluates</h2>
+<p>They are not competing formats; they observe different things. A take-home is asynchronous, so it reveals code quality, structure, testing, documentation, and how you decide when you control your time. GitLab's public process uses take-homes scoped to roughly a few hours of focused work and weights correctness, test coverage, and documentation quality together rather than speed. The real question is whether a stranger could pick up your submission and iterate on it.</p>
+<p>Live pairing does the opposite. It removes polish you can add offline and shows how you think when you are stuck, how you respond to a nudge, and whether you can be a teammate. PostHog states its technical interview involves no whiteboarding and no brain teasers — an hour-long, workshop-style conversation about architecture or past work. The signal in any live session is method: do you ask clarifying questions, break the problem down, take a sensible first step, and treat a wrong turn as information rather than a verdict. A strong take-home answers "can you produce good work?" A strong pairing session answers "can I work with you?"</p>
+
+<h2>Narrating trade-offs out loud</h2>
+<p>Candidates are graded less on the answer than on the reasoning on the way to it. Silence is fine while you think; the failure mode is jumping to a solution without surfacing the constraint that shaped it. Name at least two real options, state the criteria you optimised for, and say what you knowingly gave up. "We chose a managed queue over self-hosted Kafka because we had one on-call engineer and a six-week window; we accepted a higher per-message cost to keep operational load near zero" tells a panel far more than a diagram.</p>
+<pre><code>Trade-off narration outline
+1. Constraint   - what the deadline, team, or system forced
+2. Options      - at least two real candidates, not strawmen
+3. Criteria     - what you optimised for and what you gave up
+4. Decision     - the choice and the smallest reversible step
+5. Evidence     - the metric or incident that confirmed or refuted it
+6. Revisit      - what would make you change your mind now
+</code></pre>
+<p>Close the loop by naming the smallest reversible step you took first. Shipping behind a flag, canary traffic, or a feature toggle signals that you think in terms of blast radius — exactly the trait a staff-level panel is fishing for.</p>
+
+<h2>Debugging a production incident under observation</h2>
+<p>Some loops replace a puzzle with an incident. You are handed logs or a failing system and asked to find the cause while an interviewer watches. The rubric is rarely "did you find it" — it is how you drive the investigation. Strong candidates form an explicit hypothesis, choose the cheapest signal that would confirm or kill it, and keep a running narrative so the interviewer can follow. They notice when a lead is a rabbit hole and back out, and they weigh mitigation against diagnosis — rolling back a bad deploy is often the right first move before the root cause is understood.</p>
+<pre><code>Production debugging checklist
+- Timeline: when did it start, what shipped just before?
+- Blast radius: which users, regions, or endpoints are affected?
+- Signal: which metric, log line, or trace would confirm my hypothesis?
+- Cheapest test: can I falsify the hypothesis without touching prod?
+- Mitigate or diagnose: roll back first, understand after
+- Communicate: state status and next step out loud, even when stuck
+- Follow up: what alarm or guardrail would have caught this sooner?
+</code></pre>
+<p>Keep talking: an interviewer cannot score a thought you never said, and a narrated dead end you recover from beats a silent correct guess.</p>
+
+<h2>Behavioural answers: name scope and measurable outcome</h2>
+<p>The STAR structure still holds, but at senior levels the panel cares about scope and honesty more than polish. Say what the system was, how many users or engineers it touched, who else was involved, and what changed. "I led the migration" is weak; "I proposed it, wrote the rollout plan, and ran the cutover for a service handling about four million requests a day" is checkable and specific.</p>
+<p>Attribute credit accurately and use "we" where the team did the work, reserving "I" for decisions you personally drove. Inflated numbers you cannot defend, or a hero narrative with no teammates, are among the fastest ways to lose a panel's trust. But ending on "we shipped it" without naming your own contribution is a missed opportunity. Aim for a precise, modest account of the part you owned:</p>
+<blockquote>Strong behavioural answers are checkable. Name the scope, the outcome, and the one decision that was yours — then stop.</blockquote>
+
+<h2>Signals that cost you the offer</h2>
+<p>Three patterns recur in rejection debriefs. The first is unexplained job-hopping: four roles in four years is not disqualifying, but a candidate who cannot give a coherent arc makes the panel worry they will leave again. Frame each move around what you were hired to do and what you learned — a short engagement, a layoff, or a step toward specific work. The second is blaming teammates: a story that ends with "the other team dropped the ball" reads as a liability, because the interviewer pictures you in their own standup. Own your part and say what you changed. The third is no evidence of ownership — answers that describe participation rather than decisions. If something succeeded, a panel wants to know which choices were yours.</p>
+
+<h2>Questions to ask about the team's engineering health</h2>
+<p>Your questions are part of the interview. They show whether you think like someone who has to live with the systems you build. Ask about the on-call rotation and how often people get paged out of hours; how deploys work and how long a change takes to reach production; whether postmortems are blameless and change things; how technical debt gets funded rather than merely acknowledged; how decisions are documented and who can reverse them; and what the first ninety days look like. How calmly a manager answers a question about a recent incident tells you more than any values page.</p>
+
+<h2>Researching fair compensation from public data</h2>
+<p>Compensation conversations go better with numbers you can name. Public data will not hand you your exact salary, but it gives a defensible range. Levels.fyi publishes level-specific bands for large employers and verifies submissions with a proof document such as an offer letter, W-2, or pay stub, weighting self-reported rows differently, and states it has never accepted payment to adjust its numbers. The Stack Overflow Developer Survey offers broad market medians by role: in the 2024 results, US median total compensation by developer type included back-end developers at $170,000, site reliability engineers at $166,500, and full-stack developers at $130,000, with self-reported ranges running roughly $10K lower than the prior year.</p>
+<table>
+<thead><tr><th>Source</th><th>Best for</th><th>Watch out for</th></tr></thead>
+<tbody>
+<tr><td>Levels.fyi</td><td>Level-specific bands at large employers</td><td>Crowdsourced; verified rows carry a proof document, self-reported ones do not</td></tr>
+<tr><td>Stack Overflow Developer Survey</td><td>Broad market medians by role</td><td>Self-reported and global; not adjusted for level</td></tr>
+<tr><td>Published job postings</td><td>Current, location-specific ranges</td><td>Base salary often excludes equity and bonus</td></tr>
+</tbody>
+</table>
+<p>Treat every figure as a range, not a target. Pay varies widely by market, company stage, cost of living, and level, and a number accurate in one city can mislead in another. Use two or three sources, weight the verified and local ones higher, and present your expectation as a range tied to the scope of the role.</p>
+
+<p>If you want to build the specific skills these loops reward — trade-off reasoning, incident response, and the judgement to explain both — browse our <a href="/courses-and-tracks/">tracks</a>, read how past students turned the work into offers on our <a href="/reviews/">alumni outcomes</a> page, and see what a term costs on our <a href="/pricing/">tuition</a> page.</p>

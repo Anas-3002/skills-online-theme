@@ -1,0 +1,106 @@
+<p>Every cache is a bet that serving a slightly stale answer is cheaper than computing a fresh one. The bet usually pays: latency drops, expensive queries disappear, and a struggling database gets breathing room. But it is asymmetric. A cache that helps at 500 requests per second can become the component that takes down the whole system at 5,000, because the moment a popular key expires, every request that missed it stampedes the database at once.</p>
+
+<p>This article covers the decisions that decide whether a caching layer holds under load: which read and write pattern you pick and what each one breaks, how to set TTLs so expiries do not synchronise, how to defend against stampedes, negative caching, how invalidation and versioned keys work, how to handle hot keys, and how to measure whether the cache is earning its keep.</p>
+
+<h2>The four patterns and their failure modes</h2>
+
+<p>Most production caching uses one of four patterns, differing in where the cache sits and what happens on a write.</p>
+
+<table>
+<tr><th>Pattern</th><th>Read path</th><th>Write path</th><th>Main failure mode</th></tr>
+<tr><td>Cache-aside</td><td>App checks cache; on miss reads the database and populates the cache</td><td>App writes the database, then deletes or updates the cache</td><td>Race between a slow reader repopulating stale data and a concurrent writer</td></tr>
+<tr><td>Read-through</td><td>Cache library or proxy loads from the database on miss</td><td>App writes the database only</td><td>First access to any key is always a miss; cold-start cost</td></tr>
+<tr><td>Write-through</td><td>Cache always has the value after a successful write</td><td>App writes cache and database in the same request</td><td>Write latency includes the database; cache failure blocks writes</td></tr>
+<tr><td>Write-behind</td><td>Cache always has the value</td><td>App writes the cache and returns; the database flush is asynchronous</td><td>Data loss or divergence if the cache dies before it flushes</td></tr>
+</table>
+
+<p>Cache-aside is the default because the application keeps control and a cache outage degrades to slower reads rather than failed writes. Read-through is cache-aside behind an interface, which removes repeated logic but hides the miss. Write-through keeps the cache and database consistent at the cost of coupling write latency to both. Write-behind is fastest to write and the only pattern that can lose data.</p>
+
+<blockquote>Pick the pattern by asking what happens on a write when the cache is unavailable. If the answer is "the write fails", you are running write-through whether you meant to or not.</blockquote>
+
+<h2>Cache-aside in practice</h2>
+
+<p>The classic helper checks the cache, falls back to the source, and repopulates. Two hazards matter: blocking forever on contention, and overwriting a fresher value with a stale one.</p>
+
+<pre><code>def get_user(user_id):
+    key = f"user:{user_id}:v{SCHEMA_VERSION}"
+    cached = cache.get(key)
+    if cached is not None:
+        return deserialize(cached)
+
+    value = load_from_db(user_id)          # the expensive call
+    if value is None:
+        cache.set(key, NEGATIVE, ex=NEG_TTL)     # negative caching
+    else:
+        cache.set(key, serialize(value), ex=ttl_with_jitter())
+    return value
+</code></pre>
+
+<p>The subtle bug is the read-modify-write race. Reader A misses, reads version 1, and is paused. Writer B updates the database to version 2 and deletes the key. Reader A wakes, writes version 1 back, and the cache now holds stale data for a full TTL. Deleting rather than updating on write narrows the window but does not close it. The robust fixes are a versioned key, so a stale write lands under an old name that is never read, or a short TTL on the repopulation write to bound the window.</p>
+
+<h2>TTL and jitter</h2>
+
+<p>TTL is the safety net for every invalidation you forgot. Set the value and its expiry together so they cannot drift:</p>
+
+<pre><code>SET user:42:profile "{\"name\":\"ada\"}" EX 300
+TTL user:42:profile             # seconds remaining; -1 no expiry, -2 missing
+EXPIRE user:42:profile 600 GT   # extend only if the TTL is below 600s</code></pre>
+
+<p>The failure mode is synchronised expiry. If a batch job loads ten thousand keys with the same TTL, they all expire together and every one becomes a database hit in the same second. The fix is jitter, for example <code>ex = base * (1 + random.uniform(0, 0.1))</code>. Treat TTL as the maximum acceptable staleness for that data class, not as a substitute for invalidation on write: profile data might tolerate minutes, a balance seconds, an inventory count none.</p>
+
+<h2>Stampede protection: single-flight, locks, and stale-while-revalidate</h2>
+
+<p>A cache stampede, or thundering herd, happens when a hot key expires and many concurrent requests all miss and recompute the same value. Three defences, usually combined:</p>
+
+<ul>
+<li><strong>Single-flight (request coalescing):</strong> in-process, only the first caller loads; the rest wait on the same future, collapsing N concurrent misses into one database read per process.</li>
+<li><strong>Distributed lock:</strong> across processes, one worker recomputes while others wait briefly or serve stale. Redis supports this with an atomic conditional set that includes a mandatory expiry:</li>
+</ul>
+
+<pre><code>SET lock:user:42 &lt;unique-token&gt; NX PX 5000  # acquire only if absent; auto-expire in 5s
+# ... recompute and repopulate ...
+DEL lock:user:42                            # release (ideally only if the token still matches)</code></pre>
+
+<p><code>NX</code> makes the set succeed only when the key is absent, and <code>PX</code> guarantees release even if the holder crashes; a lock without an expiry is a deadlock waiting for its first process failure. Some systems instead use probabilistic early expiration, where each reader refreshes slightly before the TTL with a probability that rises as expiry nears.</p>
+
+<p><strong>Stale-while-revalidate</strong> is the highest-leverage option. Keep the value plus a freshness deadline. When a request finds the value past freshness but before a hard expiry, it returns the stale value immediately and triggers a single-flighted background refresh. Readers never wait for the database. This is the semantics HTTP defines for <code>stale-while-revalidate</code>, and it is the pattern to reach for when blocking on a miss is unacceptable. The trade-off is explicit: you serve stale for the refresh window so no stampede reaches the database.</p>
+
+<blockquote>Under load, the answer to "the cache is stale" is almost never "block every request until it is fresh". Serve stale, refresh once, in the background.</blockquote>
+
+<h2>Negative caching and versioned-key invalidation</h2>
+
+<p>A cache only helps if misses are rare. Requests for keys that do not exist always miss, which is the attack known as cache penetration: random nonexistent IDs, each one reaching the source. Negative caching stores the "not found" result with a short TTL so repeat lookups are served from the cache. Two rules keep it safe: keep the negative TTL short, because a key missing a moment ago may exist now, and never negative-cache an authorization decision, because a stale denied or allowed is a security bug, not a performance trade-off.</p>
+
+<p>The invalidation pattern that scales is versioned keys. Put a version token in every key, for example <code>user:42:v7:profile</code>. To invalidate everything for a user or a schema, increment the version. Every later read looks up the new key and misses once; old entries are never read again and expire on their own. This turns a potentially enormous <code>SCAN</code> and <code>DEL</code> sweep into one counter increment, and it avoids the race where a delete and a concurrent repopulation disagree. When you must delete, prefer delete-on-write over update-on-write: writing a computed value risks caching a stale computation, while deleting lets the next reader compute fresh.</p>
+
+<h2>Hot keys and sharding</h2>
+
+<p>A key receiving a large fraction of all traffic is a hot key, and capacity does not help because all of that load lands on one shard. Mitigations, in rough order of preference:</p>
+
+<ol>
+<li><strong>Add a local in-process cache</strong> in front of Redis for the hottest read-mostly keys, with a short TTL, removing most traffic from the network and the shared cache. Redis supports server-assisted client-side caching, where the server tracks cached keys and sends invalidation messages so the local copy stays correct enough without polling.</li>
+<li><strong>Shard the key</strong> by appending a random suffix and reading from one of N replicas of the same value, spreading a read-hot key across nodes. This works for reads only.</li>
+<li><strong>Replicate</strong> the hot key so reads fan out across multiple instances.</li>
+</ol>
+
+<p>The limitation is that sharding and replication solve read hotspots, not write hotspots, because a counter or lock must agree on a single value. For write-heavy hot keys, aggregate in the application and flush periodically.</p>
+
+<h2>What a cache must never be used for</h2>
+
+<p>A cache is an optimisation that must be safe to lose. Do not treat it as durable storage unless you have designed and tested the recovery path, because write-behind without that discipline loses writes when the cache dies. Do not use it as a job queue, since its eviction policy can discard work items silently. Do not use it as a lock without an expiry and a unique token, because a crashed holder then blocks everyone forever. Do not cache authorization decisions or per-tenant data without a deliberate answer to revocation and isolation. And do not let a cache hide a missing database index: a cache that fixes a slow query masks a schema problem that resurfaces the moment the cache is cold.</p>
+
+<h2>Measuring whether the cache is helping</h2>
+
+<p>Hit rate is the metric everyone reaches for and the easiest to misread. A 95% hit rate sounds excellent until the 5% of misses are all on the most expensive keys, so the misses dominate database load and the p99. Track hit rate by key class, and always pair it with the miss penalty.</p>
+
+<ul>
+<li><strong>Hit rate, sliced by key class:</strong> an overall rate hides a cold, expensive class behind a hot, cheap one.</li>
+<li><strong>Latency percentiles at the application boundary:</strong> p50, p95, p99 for cached and uncached paths. The mean is useless; a cache's value shows up in the tail, or fails to.</li>
+<li><strong>Eviction and expiry rates:</strong> rising evictions mean the workload exceeds the cache and you are thrashing. Compare evictions against expirations.</li>
+<li><strong>Stampede signals:</strong> lock contention, single-flight waits, and database load right after large TTL expiries. A database QPS spike on the minute is a synchronised-expiry problem.</li>
+<li><strong>Cost:</strong> memory and node count weighed against the database capacity the cache lets you remove.</li>
+</ul>
+
+<p>Measure latency where the user experiences it, and test the cold path deliberately: a cache never observed empty in production has an unmeasured failure mode.</p>
+
+<p>If you want to go deeper, the related <a href="/courses-and-tracks/">tracks</a> cover distributed systems and backend architecture end to end, the <a href="/blog-and-insights/">insights</a> section has field notes on running caches in production, and <a href="/pricing/">tuition</a> details how the cohorts are structured and what they cost.</p>

@@ -1,0 +1,116 @@
+<p>The gap between senior and staff is not how much code you write; it is how much of your judgment other engineers can act on without you in the room. A senior engineer's impact is bounded by the systems they personally touch and the reviews they personally give. A staff engineer's impact is bounded by the decisions other teams can execute correctly after reading a document. That is why writing becomes load-bearing at staff level and above: a proposal that only ever gets spoken dies when the meeting ends, but a reviewed document can be cited, challenged, implemented, and later superseded by people who never met you.</p>
+
+<p>The design-doc and RFC discipline is the machinery that turns one engineer's reasoning into an organisation-wide default. It is not about prose style. It is about making the problem, the constraints, the options, the decision, the migration, and the rollout metrics visible enough that a reviewer can find the flaw before code exists - when a flaw is still cheap to fix. This article covers which artifact to use, the structure that makes a proposal reviewable, how to drive async review and socialise a proposal early, how to settle disagreement with data, and how to record decisions so they outlive the team that made them.</p>
+
+<h2>Three artifacts, three different jobs</h2>
+
+<p>Teams routinely conflate three documents that do different work at different altitudes. Confusing them produces either a three-page decision record nobody finishes or a decision that vanishes into a meeting minute.</p>
+
+<ul>
+<li><strong>Design doc</strong> - written before a project starts. It documents the high-level implementation strategy and the key design decisions, with emphasis on the trade-offs considered along the way. Google treats these as relatively informal documents authored before coding begins.</li>
+<li><strong>RFC (request for comments)</strong> - a design doc circulated for broad review rather than a small group. At Uber the process was started while the team was small and scaled from tens to thousands of engineers; the point was to surface disagreements in writing before they became rework.</li>
+<li><strong>ADR (architecture decision record)</strong> - a short, single-decision record, typically a page, capturing the decision, its context, and its consequences. ADRs are a log: once accepted they are not edited, they are superseded.</li>
+</ul>
+
+<table>
+<thead><tr><th>Artifact</th><th>Answers</th><th>Length</th><th>Lifespan</th></tr></thead>
+<tbody>
+<tr><td>Design doc / RFC</td><td>Should we do this, and how?</td><td>1-20 pages</td><td>Living until shipped</td></tr>
+<tr><td>ADR</td><td>Why did we decide this?</td><td>About one page</td><td>Permanent; superseded, not edited</td></tr>
+<tr><td>Runbook / README</td><td>How does it operate today?</td><td>Varies</td><td>Continuously updated</td></tr>
+</tbody>
+</table>
+
+<p>You reach for a design doc when the solution is genuinely ambiguous - when problem complexity, solution complexity, or both leave room for a wrong turn. If there are no real trade-offs to weigh, skip the ceremony and write the code.</p>
+
+<h2>The structure: from problem to rollout metrics</h2>
+
+<p>A reviewable proposal is not a description of your solution. It is an argument, and an argument has a fixed spine:</p>
+
+<ol>
+<li><strong>Context and scope</strong> - objective background only. Not requirements, not opinions; enough that a competent reader from another team can follow the rest.</li>
+<li><strong>Problem</strong> - the specific thing that is broken or missing, and why it matters now. If the problem is not agreed on, no solution will be.</li>
+<li><strong>Goals and non-goals</strong> - non-goals are not negated goals; they are things that could reasonably be goals (say, ACID compliance) that you are explicitly choosing not to pursue.</li>
+<li><strong>Options considered</strong> - at least two real alternatives with their trade-offs. This is the section that proves you thought, rather than merely decided.</li>
+<li><strong>Decision</strong> - the recommendation, stated in the active voice, with the trade-off it accepts.</li>
+<li><strong>Risks</strong> - what could go wrong, and the failure modes of the chosen path.</li>
+<li><strong>Migration</strong> - how existing systems and data move, incrementally, without a flag day.</li>
+<li><strong>Rollout</strong> - the phased plan, who does what, and the rollback trigger.</li>
+<li><strong>Rollout metrics</strong> - the numbers that tell you it worked, defined before you start.</li>
+</ol>
+
+<blockquote>A design doc that reads like an implementation manual - telling the reader what you will build with no trade-offs, alternatives, or decision-making - would have been better as code. The document earns its existence by surfacing assumptions that turn out to be wrong before you have built on them.</blockquote>
+
+<h2>Writing for the reviewer's time</h2>
+
+<p>Senior readers give your document one pass. Write in the inverted-pyramid style of a news story: the most important material first, detail pushed later. State the recommendation and its cost in the opening paragraph, so a reviewer who stops after the first page still knows what you are asking for. Keep the template minimal - staff guidance is to prefer small templates that let authors select the sections that matter, because overloaded templates discourage people from writing at all. Link to supporting detail instead of inlining it.</p>
+
+<h2>Socialise before the review meeting</h2>
+
+<p>The review meeting is the worst possible first audience. By then you are defended and the reviewers are cold. Gather perspectives first: collect input from the people who will depend on the output, then write the document alone - most groups edit far worse than one author writes. Spend your effort talking to the people most likely to disagree, especially those with blind spots you know you have. Share a rough draft with key advisors in advance so they get thinking time, then walk the template section by section and ask why they are raising each point. By the time the document reaches a wider forum, the sharpest objections have already been absorbed and your draft is focused.</p>
+
+<h2>Resolving disagreement with data, not volume</h2>
+
+<p>Disagreement on a proposal is usually one of three things: a factual gap, a values conflict, or a bad estimate. Separate them. A factual gap closes with evidence - a benchmark, a prototype, a load test. The best single argument for a design is often simply that a prototype proved it implementable. A values conflict will not yield to data; it is resolved by reference to a written principle or strategy, which is exactly why opinionated strategy documents exist. A bad estimate closes by scoping the smallest version that tests the assumption.</p>
+
+<p>When you disagree with advice you have received, you do not have to accept it, but you do have to record it, along with your reasoning for diverging. The record of dissent is part of the artifact, not a casualty of consensus.</p>
+
+<h2>Recording the decision so it survives turnover</h2>
+
+<p>A decision that lives only in a meeting or a chat thread forces the next engineer into one of two bad choices: accept it blindly or reverse it blindly. Both are destructive. The first produces a project that collapses under accumulated undocumented decisions; the second changes the system without understanding why it was built that way. A short decision record fixes this. Keep it in the repository beside the code, numbered monotonically, in lightweight markup so it can be read and diffed like code. Mark it accepted, then superseded rather than edited. Record the confidence level and the conditions that should trigger a re-evaluation, so a future reader knows when the context has changed enough to revisit it.</p>
+
+<h2>A reusable RFC skeleton</h2>
+
+<pre><code># RFC-NNNN: &lt;decision in the title&gt;
+
+Status: Draft | In review | Accepted | Superseded by RFC-NNNN
+Author(s): ...
+Reviewers: ...
+Last updated: YYYY-MM-DD
+
+## Context and scope
+Objective background. Link, do not inline.
+
+## Problem
+What is broken or missing, and why now. One paragraph.
+
+## Goals / Non-goals
+- Goal: ...
+- Non-goal (could be a goal, deliberately not): ...
+
+## Options considered
+### Option A - &lt;name&gt;
+Trade-offs, cost, risk.
+### Option B - &lt;name&gt;
+Trade-offs, cost, risk.
+
+## Decision
+We will ... because ... We accept the following trade-off: ...
+
+## Risks and mitigations
+- Risk: ... Mitigation: ...
+
+## Migration
+Incremental steps. No flag day.
+
+## Rollout plan
+Phase 1 / Phase 2 / rollback trigger.
+
+## Rollout metrics
+The numbers that define success, and where they are read.
+
+## Open questions
+- ...
+</code></pre>
+
+<h2>Anti-patterns to avoid</h2>
+
+<ul>
+<li><strong>The implementation manual.</strong> A document that describes exactly what will be built with no alternatives or trade-offs adds nothing over the code itself. If there were no trade-offs, you did not need the doc.</li>
+<li><strong>The flag-day migration.</strong> Any plan that requires every team to switch at once is a plan that will not happen. Break it into phases with independent rollback.</li>
+<li><strong>The approval gate.</strong> Writing to collect sign-off treats the document as a toll booth. The purpose is to find wrong assumptions early, not to gather signatures.</li>
+<li><strong>The silent decision.</strong> If the decision was made in a meeting and never written down, the next person inherits it with no way to know whether it still holds.</li>
+<li><strong>The edited decision record.</strong> Rewriting an accepted decision record erases the history that makes it trustworthy. Supersede it instead.</li>
+</ul>
+
+<p>Writing proposals is the least glamorous and highest-leverage staff-level skill, because it is how one engineer's judgment reaches teams they will never join. If you want the surrounding context, start with our <a href="/pillars-and-outcomes/">methodology</a>, work through the relevant <a href="/courses-and-tracks/">tracks</a>, and see how engineers who have done it describe their own <a href="/reviews/">alumni outcomes</a>.</p>

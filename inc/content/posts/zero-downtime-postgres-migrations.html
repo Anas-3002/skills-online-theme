@@ -1,0 +1,128 @@
+<p>Schema migrations are the one deploy step that can take down an otherwise healthy database. On a live PostgreSQL table, a DDL statement behaves nothing like the same statement on an empty test database: it acquires a table-level lock that either blocks every query or almost none. The gap is the difference between a millisecond catalog update and a multi-minute table rewrite holding <code>ACCESS EXCLUSIVE</code> while it copies every row.</p>
+
+<p>This article covers the mechanics PostgreSQL documents, the version boundaries that change the advice, and the patterns &mdash; concurrent index builds, fast column defaults, constraint validation, batched backfills, and expand/contract &mdash; that let you change schema on large tables while the application keeps serving traffic. Every behavioural claim is pinned to the current PostgreSQL manual or the release note that introduced it.</p>
+
+<h2>Which DDL statement takes which lock</h2>
+<p>PostgreSQL has eight table-level lock modes. The key fact is that <code>ALTER TABLE</code> acquires <code>ACCESS EXCLUSIVE</code> unless a subform explicitly notes otherwise, and a command with multiple subcommands takes the strictest lock any of them needs. <code>ACCESS EXCLUSIVE</code> conflicts with every other lock, including <code>ACCESS SHARE</code> &mdash; so it blocks plain <code>SELECT</code>, not just writes.</p>
+
+<table>
+<thead><tr><th>Statement</th><th>Lock acquired</th><th>What it blocks</th></tr></thead>
+<tbody>
+<tr><td><code>SELECT</code></td><td><code>ACCESS SHARE</code></td><td>Only <code>ACCESS EXCLUSIVE</code></td></tr>
+<tr><td><code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code></td><td><code>ROW EXCLUSIVE</code></td><td>Reads continue; blocks concurrent DDL</td></tr>
+<tr><td><code>CREATE INDEX</code> (no <code>CONCURRENTLY</code>)</td><td><code>SHARE</code></td><td>Writes, not reads</td></tr>
+<tr><td><code>CREATE INDEX CONCURRENTLY</code></td><td><code>SHARE UPDATE EXCLUSIVE</code></td><td>Only other <code>SHARE UPDATE EXCLUSIVE</code> or stronger</td></tr>
+<tr><td><code>VALIDATE CONSTRAINT</code></td><td><code>SHARE UPDATE EXCLUSIVE</code></td><td>Autovacuum and DDL, not reads or writes</td></tr>
+<tr><td>Most <code>ALTER TABLE</code> forms</td><td><code>ACCESS EXCLUSIVE</code></td><td>Everything, including <code>SELECT</code></td></tr>
+</tbody>
+</table>
+
+<p>A statement's lock mode is often the same whether it is fast or slow; how long the lock is held is what turns a safe migration into an incident.</p>
+
+<h2>The lock queue is the real outage</h2>
+<p>The failure people hit most often is not a slow rewrite; it is a fast statement that waits. An <code>ALTER TABLE</code> must acquire <code>ACCESS EXCLUSIVE</code>, and if any transaction already holds a conflicting lock &mdash; a long analytics <code>SELECT</code>, or a session idle inside a transaction &mdash; the <code>ALTER</code> waits. Every new query that needs a conflicting lock then queues behind it, because a pending exclusive lock request blocks later conflicting acquisitions. A statement that would have run in microseconds can freeze the table for as long as the slow query runs.</p>
+<p>The fix is to make DDL fail fast rather than poison the queue: set a <code>lock_timeout</code> on every DDL step.</p>
+<pre><code>BEGIN;
+SET LOCAL lock_timeout = '3s';
+SET LOCAL statement_timeout = '15s';
+ALTER TABLE orders ADD COLUMN status text;
+COMMIT;</code></pre>
+<p><code>lock_timeout</code> aborts a statement that waits too long for a lock; <code>statement_timeout</code> caps total runtime and suits the scan-based steps such as validation and backfills. Run the migration in a retry loop: if it times out, the table was busy, so try again rather than forcing the lock.</p>
+<blockquote>Treat a lock timeout as a normal outcome, not an error. A harness that retries on <code>lock_timeout</code> will eventually find a quiet window and never hold the queue.</blockquote>
+
+<h2>CREATE INDEX CONCURRENTLY, and why it cannot run in a transaction</h2>
+<p>A plain <code>CREATE INDEX</code> takes a <code>SHARE</code> lock: reads continue, but every write blocks for the duration of the build. <code>CREATE INDEX CONCURRENTLY</code> avoids that by taking only <code>SHARE UPDATE EXCLUSIVE</code>, which does not block ordinary reads or writes. In exchange it is slower: PostgreSQL performs two table scans in separate transactions and waits for transactions that could modify or use the index to finish.</p>
+<p>Because it spans multiple transactions internally, <code>CREATE INDEX CONCURRENTLY</code> cannot run inside a transaction block &mdash; the manual states this explicitly. Migration tools that wrap every migration in a transaction must mark this step non-transactional, or run it as its own script outside a <code>BEGIN</code>.</p>
+<pre><code>-- Must NOT be inside BEGIN/COMMIT.
+CREATE INDEX CONCURRENTLY idx_orders_customer_id
+    ON orders (customer_id);</code></pre>
+<p>If the build is interrupted &mdash; a deadlock, a timeout, or a unique violation &mdash; it leaves an invalid index behind. An invalid index is ignored by the planner but still adds write overhead. Find them and clean up:</p>
+<pre><code>SELECT indexrelid::regclass AS invalid_index
+FROM pg_index
+WHERE NOT indisvalid;
+
+-- Recovery: drop and retry, or rebuild in place (PostgreSQL 12+).
+DROP INDEX CONCURRENTLY idx_orders_customer_id;
+-- or
+REINDEX INDEX CONCURRENTLY idx_orders_customer_id;</code></pre>
+
+<h2>Adding columns and defaults without a rewrite</h2>
+<p>On PostgreSQL 11 and later, <code>ADD COLUMN</code> with a non-volatile default does not rewrite the table. The default is evaluated once, stored in the table's metadata, and returned for existing rows on access, so the <code>ALTER TABLE</code> is a fast catalog update even on a table with hundreds of millions of rows. The PostgreSQL 11 release notes describe this as allowing <code>ALTER TABLE</code> "to add a column with a non-null default without doing a table rewrite".</p>
+<p>The trap is a volatile default: the manual states that one such as <code>clock_timestamp()</code>, a stored generated column, an identity column, or a domain type carrying constraints will cause the entire table and its indexes to be rewritten &mdash; under <code>ACCESS EXCLUSIVE</code>, so reads block as well as writes.</p>
+<table>
+<thead><tr><th><code>ADD COLUMN ... DEFAULT</code></th><th>Rewrite?</th></tr></thead>
+<tbody>
+<tr><td><code>0</code>, <code>'pending'</code>, <code>true</code>, <code>now()</code></td><td>No &mdash; catalog update only</td></tr>
+<tr><td><code>gen_random_uuid()</code>, <code>random()</code>, <code>clock_timestamp()</code></td><td>Yes &mdash; full table rewrite</td></tr>
+<tr><td><code>GENERATED ALWAYS AS (...) STORED</code>, <code>GENERATED ... AS IDENTITY</code></td><td>Yes &mdash; full table rewrite</td></tr>
+</tbody>
+</table>
+<p>Note that <code>now()</code> takes the fast path because it is stable, not volatile: it is evaluated once for the statement, so every existing row gets the same timestamp. For a distinct value per row, do not use a volatile default in <code>ADD COLUMN</code>; add the column, set a default, and backfill.</p>
+<pre><code>-- Fast on PostgreSQL 11+: constant default, no rewrite.
+ALTER TABLE orders ADD COLUMN status text NOT NULL DEFAULT 'pending';
+
+-- Per-row value without a rewrite: add, then set the default for new rows.
+ALTER TABLE orders ADD COLUMN api_key uuid;
+ALTER TABLE orders ALTER COLUMN api_key SET DEFAULT gen_random_uuid();</code></pre>
+<p><code>ALTER COLUMN ... SET DEFAULT</code> on an existing column only changes what future inserts receive; it never touches existing rows, so it never rewrites.</p>
+
+<h2>Adding NOT NULL safely</h2>
+<p><code>ALTER COLUMN ... SET NOT NULL</code> ordinarily scans the whole table to verify no nulls exist. Since PostgreSQL 12 that scan is skipped when a valid <code>CHECK</code> constraint already proves no nulls are possible. The safe sequence: add the check as <code>NOT VALID</code> (skips the scan), validate it under a lock that does not block reads or writes, then set <code>NOT NULL</code> &mdash; which now skips its own scan &mdash; and drop the redundant check.</p>
+<pre><code>-- 1. Instant: no scan, enforced for new rows only.
+ALTER TABLE orders
+    ADD CONSTRAINT orders_api_key_not_null
+    CHECK (api_key IS NOT NULL) NOT VALID;
+
+-- 2. Scans under SHARE UPDATE EXCLUSIVE; reads and writes continue.
+ALTER TABLE orders VALIDATE CONSTRAINT orders_api_key_not_null;
+
+-- 3. Skips its own scan because the valid CHECK proves no nulls (PostgreSQL 12+).
+ALTER TABLE orders ALTER COLUMN api_key SET NOT NULL;
+
+-- 4. Drop the now-redundant check.
+ALTER TABLE orders DROP CONSTRAINT orders_api_key_not_null;</code></pre>
+<p>The same <code>NOT VALID</code> to <code>VALIDATE CONSTRAINT</code> pattern applies to foreign keys, which take only a <code>SHARE ROW EXCLUSIVE</code> lock and skip the initial scan.</p>
+
+<h2>Batched backfills with throttling</h2>
+<p>Backfilling a column in a single <code>UPDATE</code> creates one long transaction: it holds locks, generates a wall of dead tuples, and can bloat the table. Do it in batches that each commit quickly, keyed on a stable column such as the primary key.</p>
+<pre><code>-- One batch; run repeatedly until it touches 0 rows.
+UPDATE orders
+SET status = 'pending'
+WHERE id IN (
+    SELECT id FROM orders
+    WHERE status IS NULL
+    ORDER BY id
+    LIMIT 10000
+);</code></pre>
+<p>Drive it from the shell so each batch is its own transaction and the loop can be throttled and resumed:</p>
+<pre><code>while true; do
+  tag=$(psql -At -c "
+    WITH batch AS (
+      SELECT id FROM orders WHERE status IS NULL LIMIT 5000
+    )
+    UPDATE orders o SET status = 'pending'
+    FROM batch WHERE o.id = batch.id;")
+  n=${tag##* }          # psql -At returns the tag, e.g. 'UPDATE 5000'
+  echo "updated $n rows"
+  [ "$n" = "0" ] && break
+  sleep 0.2             # let autovacuum and replicas keep up
+done</code></pre>
+<p>Keep batches small enough to commit in well under a second, throttle to protect replicas and autovacuum, and always filter on the predicate that still needs work (<code>WHERE status IS NULL</code>) so re-running the loop is idempotent.</p>
+
+<h2>Expand/contract: rolling schema changes out across deploys</h2>
+<p>Old and new versions of your application run at the same time during a rolling deploy, so a schema change must be split into backward-compatible steps. The expand/contract pattern does exactly this:</p>
+<ol>
+<li><strong>Expand.</strong> Add the new column as nullable, with a default for new rows. Old code ignores it; new code starts writing it.</li>
+<li><strong>Dual-write.</strong> Deploy code that writes both the old and the new representation, so no data is lost regardless of which version handles a request.</li>
+<li><strong>Backfill.</strong> Fill historical rows in batches, while both columns stay in sync.</li>
+<li><strong>Switch reads.</strong> Deploy code that reads only the new column.</li>
+<li><strong>Contract.</strong> Once no code reads the old column, stop writing it and drop it in a later deploy.</li>
+</ol>
+<p>Never rename a column in place as a single step: a rename is invisible to old code, which fails the moment it runs. Add the new column, migrate the data, then drop the old one.</p>
+
+<h2>Always have a rollback plan</h2>
+<p>Design every step to be revertible without a data restore. The cleanest rollback for a forward-compatible migration is simply to stop using the new column and redeploy the previous application version &mdash; nothing is lost because the old data is still there. That is why the contract step comes last and in its own deploy: dropping a column is fast but irreversible, so postpone it until the new path has run in production for a while.</p>
+<p>Two habits make rollback real: keep each migration small enough that its reverse is obvious, and rehearse the down path on a copy of production first. If a step cannot be safely reversed &mdash; a destructive <code>DROP COLUMN</code>, a data type change that rewrites rows &mdash; isolate it as the final, deliberate step.</p>
+<blockquote>If you cannot describe how to undo a migration step in one sentence, the step is too big.</blockquote>
+
+<p>These patterns compose into a set of tracks covering migrations, replication, and production operations end to end. Work through them in our <a href="/courses-and-tracks/">tracks</a>, see what each plan includes on <a href="/pricing/">pricing</a>, and read deeper write-ups on the <a href="/blog-and-insights/">insights</a> blog.</p>

@@ -1,0 +1,110 @@
+<p>Most platform teams do not lose control of a cluster because Kubernetes is hard. They lose it because the cluster was built by hand, one <code>kubectl apply</code> at a time, and nothing in the system records why any part of it looks the way it does. The first symptom is usually a node pool someone scaled in a cloud console "just for now"; the next is a production namespace that differs from staging in ways nobody can enumerate. Reproducibility is the property that fixes this: every environment is the output of the same source of truth, and the only differences are declared values.</p>
+<p>This article follows a concrete path from that hand-managed starting point to infrastructure provisioned by Terraform modules and applications reconciled by a GitOps controller. The end state is a repository layout that separates infrastructure from application configuration, remote Terraform state with locking, modules that make environments differ only by variables, promotion by pull request, and an RBAC model that lets application teams deploy without cluster-admin.</p>
+<h2>1. Split infrastructure from application configuration</h2>
+<p>Two kinds of change flow into a cluster: infrastructure that changes rarely — clusters, node pools, IAM, network — and application configuration that changes many times a day. Putting both in one repository couples them. Every configuration tweak forces a full infrastructure plan, and every infrastructure change queues behind application review. Separate them by ownership and by cadence.</p>
+<p>The infrastructure repository owns cloud resources and cluster bootstrap. The application configuration repository — the GitOps repo — owns everything that runs inside the cluster: Deployments, Services, Ingress, and the controller that reconciles them. Terraform's last action is to install the GitOps controller and point it at the GitOps repo. That is a bootstrap, not an ongoing duty. Flux documents the pattern directly: the manifests are applied, a <code>GitRepository</code> and <code>Kustomization</code> are created for the components, and the controller then manages itself like any other resource.</p>
+<pre><code>infra/
+  modules/k8s-cluster/
+  modules/network/
+  envs/staging/{main.tf,staging.tfvars}
+  envs/production/{main.tf,production.tfvars}
+
+gitops/
+  apps/checkout-api/base/
+  apps/checkout-api/overlays/staging/
+  apps/checkout-api/overlays/production/
+  clusters/staging/
+  clusters/production/
+</code></pre>
+<blockquote>Takeaway: if a change can be made by a human in a console, it is drift. Give every resource exactly one owner repository.</blockquote>
+<h2>2. Remote state and why locking matters</h2>
+<p>Terraform records the mapping between configuration and real resources in its state file. By default that file is local, and the Terraform documentation is blunt about the consequences: with a local file each user must ensure they have the latest state and nobody may run Terraform at the same time. Remote state writes the file to a shared backend, so every team member and every pipeline reads the same data, and outputs can be shared between configurations.</p>
+<p>Locking is what stops two pipelines from planning or applying against the same state concurrently. Fully featured backends support it — the Amazon S3 backend uses a lock table, commonly a DynamoDB table. HCP Terraform goes further and also queues operations, so a new plan cannot be created while an earlier one still awaits approval. Configure the backend in the root module, before any resources.</p>
+<pre><code>terraform {
+  required_version = ">= 1.5.0"
+
+  backend "s3" {
+    bucket         = "acme-tfstate"
+    key            = "infra/production/terraform.tfstate"
+    region         = "eu-west-1"
+    dynamodb_table = "acme-tfstate-locks"
+    encrypt        = true
+  }
+}
+</code></pre>
+<blockquote>Takeaway: never commit state. It can contain secrets in plaintext, and it is the only record of which real resources your configuration owns.</blockquote>
+<h2>3. Structure modules so environments differ only by variables</h2>
+<p>Keep the module tree flat: one level of child modules, passing dependencies between them with expressions. HashiCorp calls this module composition and recommends it over deeply nested modules. Dependency inversion follows: a module receives the objects it needs as arguments rather than creating them itself, which keeps it reusable.</p>
+<p>The payoff is environment parity. Staging and production call the same module through the same code path and differ only in the variable values they pass.</p>
+<pre><code>module "cluster" {
+  source = "../../modules/k8s-cluster"
+
+  cluster_name = var.cluster_name
+  region       = var.region
+  node_count   = var.node_count
+}
+</code></pre>
+<pre><code># envs/production/production.tfvars
+cluster_name = "acme-prod-ew1"
+region       = "eu-west-1"
+node_count   = 9
+</code></pre>
+<pre><code># envs/staging/staging.tfvars
+cluster_name = "acme-staging-ew1"
+region       = "eu-west-1"
+node_count   = 3
+</code></pre>
+<p>If a difference cannot be expressed as a variable, that usually means the abstraction is wrong, not that the module needs an <code>if</code> branch. <code>terraform plan</code> run in the pull request then shows reviewers exactly what will change in each environment before anything is applied.</p>
+<h2>4. GitOps reconciliation: the pull model and drift detection</h2>
+<p>A GitOps controller runs inside the cluster and continuously pulls desired state from Git. The OpenGitOps principles reduce to four properties: desired state is declarative, stored immutably with version history, pulled automatically by an agent, and continuously reconciled. There is no push step, and no CI pipeline holding long-lived production credentials. The cluster reaches out to Git, so the credential problem inverts — the controller needs read access to one repository, and CI needs none.</p>
+<p>Argo CD is one such controller. It compares each application's live state against the manifests in Git and marks anything that deviates as <code>OutOfSync</code>, then syncs automatically or on approval. Flux works the same way: a <code>Kustomization</code> reconciles on its interval, five minutes by default, and any <code>kubectl edit</code>, <code>patch</code>, or <code>delete</code> against a managed resource is reverted on the next loop.</p>
+<pre><code>apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: checkout-api
+  namespace: argocd
+spec:
+  project: checkout
+  source:
+    repoURL: https://github.com/acme/gitops.git
+    targetRevision: main
+    path: apps/checkout-api/overlays/production
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: checkout
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+</code></pre>
+<p>Setting <code>selfHeal: true</code> is drift detection with teeth. A manual hotfix is reverted rather than silently persisted. That is the intended behavior: if a change matters, it goes through Git.</p>
+<blockquote>Takeaway: drift is not a mystery. It is any write that did not pass through Git, and the controller's job is to make that write temporary.</blockquote>
+<h2>5. Promotion from staging to production by pull request</h2>
+<p>Promotion is a change to the value a version points at, reviewed like any other code change. Two shapes are common: a directory overlay per environment, where promotion copies an image tag from staging to production, or a pinned image digest promoted by a commit. Both end in a pull request.</p>
+<p>Concretely, CI builds <code>checkout-api:1.14.3</code> and commits the new tag to <code>overlays/staging</code>. The staging application syncs. Once it is healthy, a one-line pull request updates <code>overlays/production</code> to the same tag. Approvers see a single diff, and the merge is the deploy. Nothing else about production changes, because the overlay already holds every other production value.</p>
+<pre><code>apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: checkout-api
+  namespace: flux-system
+spec:
+  interval: 5m
+  sourceRef:
+    kind: GitRepository
+    name: gitops-repo
+  path: ./apps/checkout-api/overlays/production
+  prune: true
+  targetNamespace: checkout
+</code></pre>
+<p>For progressive delivery, the same Git commit drives a controller that shifts traffic gradually instead of replacing every replica at once. Flux ships Flagger for this; Argo Rollouts is the equivalent in the Argo ecosystem. Canary steps, analysis against real metrics, and automatic promotion or rollback all stay declarative and all stay in Git.</p>
+<h2>6. Secrets management</h2>
+<p>Git is not a secret store, and Kubernetes Secrets are not encrypted by default. The Kubernetes documentation states it plainly: Secrets are stored unencrypted in etcd, anyone with API access can retrieve or modify them, and anyone authorized to create a Pod can read any Secret in that namespace. Treat that as the floor you must improve on, never as a guarantee.</p>
+<p>A workable GitOps pattern keeps ciphertext in Git and plaintext out of it. SOPS with age or a cloud KMS encrypts values so only the cluster can decrypt them; Sealed Secrets does the same with an in-cluster key; the External Secrets Operator and the Secrets Store CSI driver instead fetch from an external system such as Vault or a cloud secret manager at runtime. Whichever you choose, layer on the Kubernetes hardening steps: enable encryption at rest, apply least-privilege RBAC to Secrets, restrict which containers may mount them, and prefer short-lived credentials over long-lived tokens.</p>
+<blockquote>Takeaway: if a secret value ever appears in <code>git log</code> in plaintext, treat it as compromised and rotate it.</blockquote>
+<h2>7. The review and rollback story</h2>
+<p>Review follows from the model rather than being bolted on. A change is a diff, the diff is a pull request, and the pull request is the approval gate. <code>terraform plan</code> output shows reviewers the pending infrastructure change; the GitOps diff shows them the pending cluster change. Argo CD can render the manifest difference between the live application and a proposed commit before the merge happens.</p>
+<p>Rollback is the same mechanism in reverse. Because desired state is versioned, you roll back by reverting the commit or by deploying an earlier revision — Argo CD can roll back to any configuration committed to Git. There is no reversal of ad-hoc commands, because there were none. The record of what changed, who approved it, and what the system looked like at any point is the Git history itself.</p>
+<h2>8. Self-service without cluster-admin</h2>
+<p>The goal is that an application team can ship without filing a ticket to the platform team, and without anyone holding cluster-admin. Kubernetes RBAC plus the controller's own scoping gets you there. Give each team a namespace, bind a Role limited to the resources they own in that namespace, and set ResourceQuota and LimitRange so one team cannot exhaust the cluster. Then use the controller's project concept — an Argo CD AppProject, or Flux's namespace and Kustomization boundaries — to restrict which repositories may deploy to which clusters. A team can merge to its own overlay and watch it sync; it cannot point an application at another team's namespace, or at a repository the project does not allow.</p>
+<p>Kubernetes' own guidance is to reserve broad roles such as cluster-admin for administrative purposes and to grant only the minimum permissions a workload needs. Combined with the Git review gate, the blast radius of any single engineer stays small and fully auditable.</p>
+<p>If you are moving a hand-managed cluster along this path, the sequence that works is: adopt remote state and locking first, extract modules second, stand up the GitOps controller third, then migrate workloads environment by environment. Our <a href="/courses-and-tracks/">tracks</a> cover the same progression hands-on, and <a href="/enterprise/">enterprise training</a> maps it onto your own clusters and repositories. See <a href="/pricing/">pricing</a> for team plans.</p>

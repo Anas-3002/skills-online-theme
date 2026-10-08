@@ -1,0 +1,18 @@
+/*
+Theme Name: Skills Online
+Theme URI: https://midnightblue-hornet-603259.hostingersite.com/
+Author: Skills Online desk
+Description: Purpose-built dark "institutional terminal" theme reproducing the approved Stitch design 1:1. Compiled Tailwind design tokens, native WordPress templates, no page-builder dependency.
+Version: 1.0.0
+Requires at least: 6.5
+Tested up to: 6.8
+Requires PHP: 7.4
+License: GNU General Public License v2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain: skills-online
+Tags: dark, one-column, custom-menu, featured-images, translation-ready
+*/
+
+/* The compiled design system lives in assets/css/theme.css (Tailwind) and
+   assets/css/design.css (component + prose layer). This file intentionally
+   carries only the theme header so nothing can override the design tokens. */

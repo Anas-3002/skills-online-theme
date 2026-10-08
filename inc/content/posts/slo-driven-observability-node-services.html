@@ -1,0 +1,147 @@
+<p>Reliability for an API is a number the team agreed to defend, measured from the caller's side of the connection. A service returning clean 200 responses while its p99 latency drifts past a second is not reliable to the people calling it. SLO-driven observability turns "the API should feel fast and mostly work" into measurable indicators, an explicit target, and an error budget that funds the trade-off between shipping and stabilizing.</p>
+
+<p>This article covers the mechanics for a Node.js service: choosing SLIs, computing an error budget, instrumenting with OpenTelemetry without drowning in cardinality, deciding which signals deserve a page, and tracing a p99 regression from alert to dependency. The on-call practices at the end are what make it survive a real rotation.</p>
+
+<h2>SLIs, SLOs, and Error Budgets: A Worked Example</h2>
+
+<p>A service level indicator (SLI) measures the service as the user experiences it. The SRE Workbook recommends one shape for almost every SLI: good events divided by total events, from 0% (nothing works) to 100% (nothing is broken). A service level objective (SLO) is the target for that ratio over a window; the error budget is 100% minus the SLO, the badness you may spend.</p>
+
+<p>Take an availability SLO of 99.9% over 30 days. The budget is 0.1% of requests: if the API serves 3,000,000 requests, that is 3,000 allowed failures. A single outage producing 1,500 errors consumes half the budget in one incident, a concrete and negotiable fact rather than an argument about feelings.</p>
+
+<p>The step from 99.9% to 99.99% is a ten-fold cut in allowed failure and, in practice, a ten-fold increase in cost. The SRE Workbook is direct that 100% is the wrong target: a service that can never fail can never ship.</p>
+
+<table>
+<tr><th>Burn rate</th><th>Error rate (99.9% SLO)</th><th>Time to exhaust 30-day budget</th></tr>
+<tr><td>1</td><td>0.1%</td><td>30 days</td></tr>
+<tr><td>2</td><td>0.2%</td><td>15 days</td></tr>
+<tr><td>10</td><td>1%</td><td>3 days</td></tr>
+<tr><td>1,000</td><td>100%</td><td>43 minutes</td></tr>
+</table>
+
+<p>Burn rate ties an error rate to the budget: burn rate 1 spends it at exactly the rate that exhausts it by the window's end, while burn rate 1,000, a total outage, exhausts a 30-day budget in 43 minutes.</p>
+
+<h2>Choosing User-Facing SLIs for an API</h2>
+
+<p>The hard part is not measuring SLIs but choosing ones that track user pain rather than internal health.</p>
+
+<ul>
+<li><strong>Measure from the edge.</strong> Count response codes and end-to-end latency at the load balancer, not inside the mesh; internal success rates hide failures between you and the user.</li>
+<li><strong>Prefer ratios over averages.</strong> "Average latency 180 ms" hides the 1% waiting four seconds; express latency as the fraction of requests under a threshold.</li>
+<li><strong>Grade by importance.</strong> A login or payment call deserves a tighter target than a background poll, so bucket request types into tiers.</li>
+<li><strong>Start rough, refine later.</strong> The first SLO must exist and be measured, not be perfect; a feedback loop calibrates it over quarters.</li>
+</ul>
+
+<p>For a typical JSON API, two SLIs carry most of the signal: availability (non-5xx responses plus successful responses on critical writes) and latency (requests served under a threshold users notice). Saturation, queue depth, and GC pause time belong on a dashboard, not an objective.</p>
+
+<h2>Symptoms vs. Causes: What Should Actually Page</h2>
+
+<p>A symptom is what the user feels; a cause is the internal condition that produces it.</p>
+
+<p>Alerting on a cause beats alerting on a symptom when you can name the cause and it has lead time. Disk exhaustion, a certificate nearing expiry, or growing replica lag will cause user pain, but later. A cause alert on a disk that fills in six hours fires before the symptom does, so for known failure modes it shortens detection.</p>
+
+<p>The trap is treating cause-based alerting as the whole strategy: you cannot write a cause alert for a failure mode you have never seen, and a page on every saturation metric produces alert storms where five notifications describe one incident. The workable design is a small backbone of cause alerts for known, high-lead-time failures plus symptom alerts that catch the rest, which for a service with an SLO means burn-rate alerts.</p>
+
+<h2>When Burn-Rate Alerts Are Appropriate</h2>
+
+<p>Burn-rate alerts are the right default when you have a meaningful, near-real-time SLO: rather than paging on an arbitrary threshold, you page when the budget is spent fast enough to threaten the objective.</p>
+
+<p>A single fast-burn alert is imprecise: an outage and a small blip can look alike if the window is badly tuned. Multi-window alerting pairs a short window that catches sudden outages with a longer window that catches slow burns, then clears once the burn stops.</p>
+
+<p>A common configuration pairs a fast burn with a ticket-level slow burn:</p>
+
+<ul>
+<li><strong>Page:</strong> burn rate above <code>14.4</code> over a 1-hour window (2% of a 30-day budget in one hour), confirmed by a 5-minute short window.</li>
+<li><strong>Ticket:</strong> burn rate above <code>1</code> over a 3-day window (10% of the budget), significant but not urgent.</li>
+</ul>
+
+<p>In Prometheus, the fast-burn rule looks like this:</p>
+
+<pre><code>- alert: ApiErrorBudgetBurnFast
+  expr: |
+    (
+      sum(rate(http_requests_total{job="api", code=~"5.."}[1h]))
+      / sum(rate(http_requests_total{job="api"}[1h]))
+    ) &gt; (14.4 * 0.001)
+  for: 2m
+  labels:
+    severity: page</code></pre>
+
+<p>The <code>14.4</code> is derived, not chosen: 2% of the budget spent in 1/720th of a 30-day window is a rate 14.4 times the sustainable one. Burn-rate alerts fit when you have a measured SLO and want to page on user impact.</p>
+
+<h2>Structured Logging and Trace Correlation in Node.js</h2>
+
+<p>During an incident the first question is always the same: which request is failing, and what else was it touching? Answering it requires logs, metrics, and traces to share an identifier.</p>
+
+<p>On Node.js, emit logs as structured JSON and attach the trace context. OpenTelemetry's Node SDK wires HTTP, database, and framework instrumentation together and injects a W3C <code>traceparent</code> header, giving a trace ID on every upstream call.</p>
+
+<pre><code>const { NodeSDK } = require('@opentelemetry/sdk-node');
+const { getNodeAutoInstrumentations } =
+  require('@opentelemetry/auto-instrumentations-node');
+const { OTLPTraceExporter } =
+  require('@opentelemetry/exporter-trace-otlp-http');
+
+const sdk = new NodeSDK({
+  traceExporter: new OTLPTraceExporter(),
+  instrumentations: [getNodeAutoInstrumentations()],
+});
+sdk.start();</code></pre>
+
+<p>To carry request context across asynchronous boundaries without threading it through every signature, use <code>AsyncLocalStorage</code> from <code>node:async_hooks</code>. Node's <code>diagnostics_channel</code> module lets instrumentation subscribe to lifecycle events, including the built-in <code>'http.server.request.start'</code> and <code>'http.server.response.finish'</code> channels, without patching library internals.</p>
+
+<pre><code>const { AsyncLocalStorage } = require('node:async_hooks');
+const { randomUUID } = require('node:crypto');
+
+const requestContext = new AsyncLocalStorage();
+
+function requestLogger(req, res, next) {
+  const traceId =
+    (req.headers.traceparent || '').split('-')[1] || randomUUID();
+  requestContext.run({ traceId }, next);
+}
+
+function log(event) {
+  const ctx = requestContext.getStore() || {};
+  process.stdout.write(JSON.stringify({
+    ...event,
+    trace_id: ctx.traceId,
+    ts: new Date().toISOString(),
+  }) + '\n');
+}</code></pre>
+
+<p>Now a latency alert points at a trace, the trace at a span, and the span's <code>trace_id</code> pulls in every related log line, turning a 3 a.m. page into a five-minute diagnosis.</p>
+
+<h2>Controlling Metric Cardinality</h2>
+
+<p>A metric's cardinality is its number of unique label combinations, and it drives memory and cost. Unlike logs, metric cost scales with distinct combinations rather than request volume, so one high-cardinality label can blow up a backend.</p>
+
+<p>The classic mistake is a label with effectively unique values per request: user IDs, session IDs, or the raw URL path. <code>http_requests_total{path="/users/8f3a/orders"}</code> is not a metric; it is a log line wearing a metric's clothes. Label with the route template (<code>/users/:id/orders</code>), method, response class, and dependency name.</p>
+
+<p>OpenTelemetry's metrics SDK enforces a default limit of 2,000 unique attribute combinations per stream. Past it, measurements are not dropped; they fold into one overflow data point marked <code>otel.metric.overflow="true"</code>. Overflow replaces the entire combination, so a query filtering on any label of an overflowed metric undercounts: a <code>success="false"</code> error-rate ratio can silently stop matching while the metric's total stays correct.</p>
+
+<p>Prometheus gives a similar guideline: keep most cardinality low, and treat a metric exceeding roughly 100 combinations as a signal to cut dimensions or move that analysis elsewhere.</p>
+
+<h2>Logs vs. Traces: The Cost Question</h2>
+
+<p>Logs and traces are both billed by volume but scale differently.</p>
+
+<ul>
+<li><strong>Log cost scales with events.</strong> Ingestion is priced per gigabyte, so one line on a hot path is paid on every request and multiplies into a large bill at millions of requests a day.</li>
+<li><strong>Traces are sampled.</strong> A trace captures a whole request lifecycle, so teams keep every errored trace and a fraction of successful ones.</li>
+<li><strong>Metrics are cheapest to retain.</strong> Pre-aggregated metrics are the durable record for SLOs and trends; expire logs and traces when troubleshooting no longer needs them.</li>
+</ul>
+
+<p>The practical split: metrics answer "is the SLO burning now," sampled traces answer "where in the request did the time go," and logs answer "what exactly happened on this one request."</p>
+
+<h2>Using SLOs in Release Decisions and Incident Review</h2>
+
+<p>An SLO pays off only when it changes a decision. The mechanism is the error-budget policy, agreed in advance: what happens when the budget is spent.</p>
+
+<p>In release decisions the policy makes the trade-off concrete: while budget remains the team ships with normal caution, and when it is exhausted launches pause and reliability work takes priority until the service is back inside its objective. Because the number was agreed in advance, this is not a punishment handed down in the moment. Canary deployments can be gated on the SLO directly, rolling back a release that worsens the burn rate.</p>
+
+<p>In incident review, quantify the damage in budget terms. "This incident consumed 40% of the quarter's availability budget" is more useful than "this one was bad," and it feeds the same prioritization: a failure mode that repeatedly eats the budget is the case for fixing it next.</p>
+
+<blockquote>SLOs are real only when they change what you ship and when you sleep. Pick the two or three indicators that map to the user, agree on the budget, and let the arithmetic, not the loudest voice in the room, decide when to slow down.</blockquote>
+
+<p>None of this works without humane on-call. Even a tuned burn-rate alert pages a human at an inconvenient hour, so size the rotation to the real alert volume, carry the budget state into handoffs, and make every page actionable. A page that does not lead to an action belongs on a dashboard, not on someone's phone.</p>
+
+<p>To build these practices into a team, explore our <a href="/courses-and-tracks/">tracks</a>, bring a whole group through <a href="/enterprise/">enterprise training</a>, and read more field notes in our <a href="/blog-and-insights/">insights</a>.</p>
