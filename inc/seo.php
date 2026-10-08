@@ -32,7 +32,7 @@ function so_meta_description() {
 		}
 	}
 	if ( is_home() ) {
-		return __( 'Institutional order-flow research, auction-market theory and risk-management notes from the Skills Online live desk.', 'skills-online' );
+		return __( 'Engineering career insights, architecture deep-dives and hiring analysis written and reviewed by practising staff engineers.', 'skills-online' );
 	}
 	if ( is_category() || is_tag() ) {
 		$term = get_queried_object();
@@ -44,8 +44,8 @@ function so_meta_description() {
 		/* translators: 1: number of articles, 2: topic name. */
 		return sprintf(
 			_n(
-				'%1$d Skills Online article filed under %2$s: order-flow research, auction market theory and desk field notes.',
-				'%1$d Skills Online articles filed under %2$s: order-flow research, auction market theory and desk field notes.',
+				'%1$d Skills Online article filed under %2$s: production engineering notes, architecture trade-offs and career guidance.',
+				'%1$d Skills Online articles filed under %2$s: production engineering notes, architecture trade-offs and career guidance.',
 				max( 1, $count ),
 				'skills-online'
 			),
@@ -102,7 +102,7 @@ function so_head_meta() {
 	$canonical = so_canonical();
 	$index     = so_is_indexable();
 	$title     = wp_get_document_title();
-	$image     = get_template_directory_uri() . '/assets/img/og-cover.jpg';
+	$image     = get_template_directory_uri() . '/assets/img/logo-mark.png';
 
 	if ( $desc ) {
 		printf( '<meta name="description" content="%s" />' . "\n", esc_attr( $desc ) );
@@ -130,17 +130,17 @@ function so_json_ld() {
 	$graph = array();
 
 	$graph[] = array(
-		'@type'       => 'Organization',
+		'@type'       => 'EducationalOrganization',
 		'@id'         => home_url( '/#organization' ),
 		'name'        => get_bloginfo( 'name' ),
 		'url'         => home_url( '/' ),
 		'description' => get_bloginfo( 'description', 'display' ),
 		'logo'        => array(
 			'@type' => 'ImageObject',
-			'url'   => get_template_directory_uri() . '/assets/img/og-cover.jpg',
+			'url'   => get_template_directory_uri() . '/assets/img/logo-mark.png',
 		),
 		'areaServed'  => 'Worldwide',
-		'knowsAbout'  => array( 'Auction market theory', 'Order flow trading', 'Futures trading', 'Risk management', 'Prop firm evaluations' ),
+		'knowsAbout'  => array( 'Software engineering', 'Cloud and DevOps', 'Applied AI and machine learning', 'Engineering leadership', 'System design' ),
 	);
 
 	$graph[] = array(
@@ -183,7 +183,7 @@ function so_json_ld() {
 			'@id'             => get_permalink() . '#breadcrumb',
 			'itemListElement' => array(
 				array( '@type' => 'ListItem', 'position' => 1, 'name' => 'Home', 'item' => home_url( '/' ) ),
-				array( '@type' => 'ListItem', 'position' => 2, 'name' => 'Insights', 'item' => home_url( '/blog/' ) ),
+				array( '@type' => 'ListItem', 'position' => 2, 'name' => 'Insights', 'item' => home_url( '/blog-and-insights/' ) ),
 				array( '@type' => 'ListItem', 'position' => 3, 'name' => get_the_title(), 'item' => get_permalink() ),
 			),
 		);
