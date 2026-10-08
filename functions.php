@@ -16,10 +16,9 @@ require_once get_template_directory() . '/inc/helpers.php';
 require_once get_template_directory() . '/inc/blog.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/so-cleanup.php'; // TEMP: one-off root cleanup.
 require_once get_template_directory() . '/inc/forms.php';
 require_once get_template_directory() . '/inc/managed-pages.php';
-require_once get_template_directory() . '/inc/installer.php';   // TEMP: one-time provisioning, token-gated.
-require_once get_template_directory() . '/inc/el-tools.php';    // TEMP: Elementor conversion/introspection endpoints.
 
 /**
  * Render the form markers that live inside stored page content.
