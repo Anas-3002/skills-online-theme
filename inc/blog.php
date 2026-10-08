@@ -172,3 +172,87 @@ function so_editorial_standards() {
 		. '<p>' . esc_html__( 'Pitch by contacting admissions with an outline, the intended reader, and what the reader will be able to do afterwards.', 'skills-online' ) . '</p>'
 		. '</div></section>';
 }
+
+/**
+ * The home page's "Latest analysis" band, rendered from real articles.
+ *
+ * The exported section carried three hand-written teaser cards with invented
+ * read counts and a dead "Read all articles" anchor; this renders the design's
+ * own card markup from the newest posts instead.
+ *
+ * @param int $count How many posts.
+ * @return string
+ */
+function so_latest_posts_block( $count = 3 ) {
+	$query = new WP_Query(
+		array(
+			'posts_per_page'      => $count,
+			'ignore_sticky_posts' => true,
+			'post_status'         => 'publish',
+		)
+	);
+	if ( ! $query->have_posts() ) {
+		return '';
+	}
+	$cards = '';
+	while ( $query->have_posts() ) {
+		$query->the_post();
+		$cats = get_the_category();
+		$cat  = $cats ? $cats[0] : null;
+		$cards .= '<article class="bg-surface-container-lowest rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden flex flex-col justify-between">'
+			. '<div class="p-space-lg space-y-space-sm">'
+			. '<div class="flex items-center justify-between text-body-sm text-on-surface-variant">'
+			. '<span class="bg-primary/10 text-primary font-label-caps text-label-caps px-2 py-0.5 rounded">' . esc_html( $cat ? strtoupper( $cat->name ) : strtoupper( __( 'Insights', 'skills-online' ) ) ) . '</span>'
+			. '<span>' . esc_html( so_read_time( get_the_ID() ) ) . '</span>'
+			. '</div>'
+			. '<h3 class="font-headline-sm text-headline-sm text-on-surface font-bold hover:text-primary transition-colors">'
+			. '<a href="' . esc_url( get_permalink() ) . '">' . esc_html( get_the_title() ) . '</a></h3>'
+			. '<p class="font-body-sm text-body-sm text-on-surface-variant">' . esc_html( so_excerpt_for( get_the_ID(), 24 ) ) . '</p>'
+			. '</div>'
+			. '<div class="px-space-lg pb-space-lg pt-0">'
+			. '<a class="text-primary font-label-md text-label-md font-semibold inline-flex items-center gap-1" href="' . esc_url( get_permalink() ) . '">'
+			. esc_html__( 'Read the playbook', 'skills-online' )
+			. '<span class="material-symbols-outlined text-xs" aria-hidden="true">arrow_forward</span></a>'
+			. '</div></article>';
+	}
+	wp_reset_postdata();
+
+	return '<section class="w-full bg-background py-space-xl">'
+		. '<div class="max-w-7xl mx-auto px-margin-mobile md:px-margin space-y-space-lg">'
+		. '<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md">'
+		. '<div class="space-y-space-xs">'
+		. '<span class="font-label-caps text-label-caps text-primary bg-primary/10 px-space-sm py-1 rounded-full">' . esc_html__( 'INSIGHTS & CAREER PLAYBOOKS', 'skills-online' ) . '</span>'
+		. '<h2 class="font-headline-lg text-headline-lg text-on-surface font-extrabold">' . esc_html__( 'Latest analysis, engineering deep-dives & guides', 'skills-online' ) . '</h2>'
+		. '</div>'
+		. '<a class="inline-flex items-center gap-space-xs text-primary font-label-lg text-label-lg font-bold hover:text-on-primary-fixed-variant transition-colors group" href="' . esc_url( home_url( '/blog-and-insights/' ) ) . '">'
+		. '<span>' . esc_html__( 'Read all articles', 'skills-online' ) . '</span>'
+		. '<span class="material-symbols-outlined text-base group-hover:translate-x-1 transition-transform" aria-hidden="true">arrow_forward</span></a>'
+		. '</div>'
+		. '<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">' . $cards . '</div>'
+		. '</div></section>';
+}
+
+/**
+ * Resolve every render-time marker in stored content.
+ *
+ * Forms need a nonce and a live request, and the home page's insight band needs
+ * the real post loop — neither can be stored, so both are markers.
+ *
+ * @param string $content Content.
+ * @return string
+ */
+function so_render_markers( $content ) {
+	if ( false !== strpos( $content, '<!--SO_FORM:' ) ) {
+		$content = preg_replace_callback(
+			'/<!--SO_FORM:([a-z_]+)-->/',
+			function ( $m ) {
+				return so_form( $m[1] );
+			},
+			$content
+		);
+	}
+	if ( false !== strpos( $content, '<!--SO_LATEST_POSTS-->' ) ) {
+		$content = str_replace( '<!--SO_LATEST_POSTS-->', so_latest_posts_block( 3 ), $content );
+	}
+	return $content;
+}

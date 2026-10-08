@@ -31,16 +31,7 @@ require_once get_template_directory() . '/inc/el-tools.php';    // TEMP: Element
  * @return string
  */
 function so_render_form_markers( $content ) {
-	if ( false === strpos( $content, '<!--CT_FORM:' ) ) {
-		return $content;
-	}
-	return preg_replace_callback(
-		'/<!--CT_FORM:([a-z_]+)-->/',
-		function ( $m ) {
-			return so_form( $m[1] );
-		},
-		$content
-	);
+	return so_render_markers( $content );
 }
 add_filter( 'the_content', 'so_render_form_markers', 20 );
 
