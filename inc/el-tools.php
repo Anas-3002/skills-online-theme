@@ -321,14 +321,29 @@ function so_el_meta() {
 	$posts = get_posts( array( 'post_type' => array( 'page', 'post' ), 'numberposts' => -1, 'post_status' => array( 'publish', 'draft' ) ) );
 	foreach ( $posts as $post ) {
 		$data = (string) get_post_meta( $post->ID, '_elementor_data', true );
+		$meta_keys = array();
+		foreach ( (array) get_post_meta( $post->ID ) as $key => $values ) {
+			$value         = is_array( $values ) ? reset( $values ) : $values;
+			$meta_keys[ $key ] = is_scalar( $value ) ? strlen( (string) $value ) : gettype( $value );
+		}
+		$revs = array();
+		foreach ( (array) wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 3 ) ) as $rev ) {
+			$revs[] = array(
+				'id'   => $rev->ID,
+				'mode' => get_post_meta( $rev->ID, '_elementor_edit_mode', true ) ?: '-',
+				'data' => strlen( (string) get_post_meta( $rev->ID, '_elementor_data', true ) ),
+			);
+		}
 		$out[ $post->post_name ] = array(
 			'id'        => $post->ID,
 			'edit_mode' => get_post_meta( $post->ID, '_elementor_edit_mode', true ) ?: '-',
 			'type'      => get_post_meta( $post->ID, '_elementor_template_type', true ) ?: '-',
 			'data_len'  => strlen( $data ),
 			'data_head' => substr( $data, 0, 120 ),
-			'revisions' => count( wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 5 ) ) ),
-			'css'       => (string) get_post_meta( $post->ID, '_elementor_css', true ) ? 'yes' : 'no',
+			'revisions' => $revs,
+			'meta'      => $meta_keys,
+			'lock'      => get_post_meta( $post->ID, '_edit_lock', true ) ?: '-',
+			'last'      => get_post_meta( $post->ID, '_edit_last', true ) ?: '-',
 		);
 	}
 	return $out;
