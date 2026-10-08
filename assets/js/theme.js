@@ -169,7 +169,7 @@
     opens.forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        var modal = doc.getElementById(btn.getAttribute('data-so-modal-open') || 'video-modal');
+        var modal = doc.getElementById(btn.getAttribute('data-so-modal-open') || 'so-preview-modal');
         if (!modal) return;
         lastFocus = doc.activeElement;
         modal.classList.remove('hidden');
