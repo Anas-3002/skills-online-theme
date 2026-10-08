@@ -44,6 +44,9 @@ function so_install_router() {
 		$out['posts']   = so_install_posts();
 		$out['menus']   = so_install_menus();
 	}
+	if ( in_array( $stage, array( 'all', 'cleanup' ), true ) ) {
+		$out['cleanup'] = so_install_cleanup();
+	}
 	if ( in_array( $stage, array( 'all', 'report' ), true ) ) {
 		$out['report'] = so_install_report();
 	}
@@ -378,6 +381,48 @@ function so_install_menus() {
 	$locations['primary'] = $menu_id;
 	set_theme_mod( 'nav_menu_locations', $locations );
 	return $added;
+}
+
+/**
+ * Remove the stock WordPress sample content and any empty leftover term.
+ *
+ * A "Hello world!" post and an "Uncategorized" category in a client hand-over
+ * look like placeholder content, which the brief forbids.
+ *
+ * @return array
+ */
+function so_install_cleanup() {
+	$removed = array();
+
+	$hello = get_page_by_path( 'hello-world', OBJECT, 'post' );
+	if ( $hello ) {
+		wp_delete_post( $hello->ID, true );
+		$removed['post'] = $hello->post_name;
+	}
+	$sample = get_page_by_path( 'sample-page', OBJECT, 'page' );
+	if ( $sample ) {
+		wp_delete_post( $sample->ID, true );
+		$removed['page'] = $sample->post_name;
+	}
+
+	// Point the default category at a real one and drop the stock leftovers when
+	// they are empty.
+	$real = get_term_by( 'name', 'Career Strategy', 'category' );
+	if ( $real && ! is_wp_error( $real ) ) {
+		update_option( 'default_category', (int) $real->term_id );
+	}
+	foreach ( array( 'uncategorized', 'blog' ) as $slug ) {
+		$term = get_term_by( 'slug', $slug, 'category' );
+		if ( $term && ! is_wp_error( $term ) && 0 === (int) $term->count && (int) $term->term_id !== (int) get_option( 'default_category' ) ) {
+			wp_delete_term( (int) $term->term_id, 'category' );
+			$removed['term'] = $slug;
+		}
+	}
+
+	// Nothing should be able to comment on a marketing site without moderation.
+	update_option( 'comment_moderation', 1 );
+
+	return array( 'removed' => $removed, 'default_category' => get_option( 'default_category' ) );
 }
 
 /**

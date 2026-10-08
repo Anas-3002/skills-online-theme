@@ -121,6 +121,17 @@
   "bytes": 7149
  },
  {
+  "slug": "blog-and-insights",
+  "title": "Blog & Insights",
+  "meta_title": "Blog & Insights",
+  "meta_description": "Engineering career insights, architecture deep-dives and hiring analysis written and reviewed by practising staff engineers.",
+  "parent": "",
+  "template": "default",
+  "faq": [],
+  "posts_page": true,
+  "bytes": 0
+ },
+ {
   "slug": "sign-in",
   "title": "Sign In",
   "meta_title": "Sign In",
