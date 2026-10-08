@@ -32,7 +32,7 @@ function so_meta_description() {
 		}
 	}
 	if ( is_home() ) {
-		return __( 'Engineering career insights, architecture deep-dives and hiring analysis written and reviewed by practising staff engineers.', 'skills-online' );
+		return __( 'Engineering career insights, architecture deep-dives and hiring analysis written and reviewed by practising staff engineers across our tracks.', 'skills-online' );
 	}
 	if ( is_category() || is_tag() ) {
 		$term = get_queried_object();
