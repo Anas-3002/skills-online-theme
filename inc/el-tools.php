@@ -49,6 +49,12 @@ function so_el_router() {
 		case 'pages':
 			$out = so_el_pages();
 			break;
+		case 'mark':
+			$out = so_el_mark();
+			break;
+		case 'meta':
+			$out = so_el_meta();
+			break;
 		default:
 			$out = array( 'error' => 'unknown action' );
 	}
@@ -273,3 +279,58 @@ function so_el_enable_mcp() {
 		'app'     => $app,
 	);
 }
+
+/**
+ * Flag pages as Elementor documents.
+ *
+ * The MCP's composition tool writes `_elementor_data` but does not switch an
+ * existing page into builder mode, so Elementor never renders it. This sets the
+ * flags a builder-created page carries; the theme's guard removes them again if
+ * the document turns out to be empty.
+ *
+ * @return array
+ */
+function so_el_mark() {
+	$slug = isset( $_GET['slug'] ) ? sanitize_text_field( wp_unslash( $_GET['slug'] ) ) : '';
+	$all  = isset( $_GET['all'] ) && '1' === (string) $_GET['all'];
+	$out  = array();
+
+	$posts = $all
+		? get_posts( array( 'post_type' => array( 'page' ), 'numberposts' => -1, 'post_status' => array( 'publish', 'draft' ) ) )
+		: array_filter( array( get_page_by_path( $slug, OBJECT, array( 'page', 'post' ) ) ) );
+
+	foreach ( $posts as $post ) {
+		update_post_meta( $post->ID, '_elementor_edit_mode', 'builder' );
+		update_post_meta( $post->ID, '_elementor_template_type', 'post' === $post->post_type ? 'wp-post' : 'wp-page' );
+		update_post_meta( $post->ID, '_elementor_version', defined( 'ELEMENTOR_VERSION' ) ? ELEMENTOR_VERSION : '4.0.0' );
+		if ( ! get_post_meta( $post->ID, '_elementor_page_settings', true ) ) {
+			update_post_meta( $post->ID, '_elementor_page_settings', array( 'template' => 'default' ) );
+		}
+		$out[ $post->post_name ] = array( 'id' => $post->ID, 'mode' => 'builder' );
+	}
+	return $out;
+}
+
+/**
+ * Dump the Elementor meta of every managed page, for diagnosis.
+ *
+ * @return array
+ */
+function so_el_meta() {
+	$out   = array();
+	$posts = get_posts( array( 'post_type' => array( 'page', 'post' ), 'numberposts' => -1, 'post_status' => array( 'publish', 'draft' ) ) );
+	foreach ( $posts as $post ) {
+		$data = (string) get_post_meta( $post->ID, '_elementor_data', true );
+		$out[ $post->post_name ] = array(
+			'id'        => $post->ID,
+			'edit_mode' => get_post_meta( $post->ID, '_elementor_edit_mode', true ) ?: '-',
+			'type'      => get_post_meta( $post->ID, '_elementor_template_type', true ) ?: '-',
+			'data_len'  => strlen( $data ),
+			'data_head' => substr( $data, 0, 120 ),
+			'revisions' => count( wp_get_post_revisions( $post->ID, array( 'posts_per_page' => 5 ) ) ),
+			'css'       => (string) get_post_meta( $post->ID, '_elementor_css', true ) ? 'yes' : 'no',
+		);
+	}
+	return $out;
+}
+
