@@ -16,6 +16,7 @@ require_once get_template_directory() . '/inc/helpers.php';
 require_once get_template_directory() . '/inc/blog.php';
 require_once get_template_directory() . '/inc/shortcodes.php';
 require_once get_template_directory() . '/inc/seo.php';
+require_once get_template_directory() . '/inc/so-prune.php'; // TEMP: deploy-clone housekeeping.
 require_once get_template_directory() . '/inc/forms.php';
 require_once get_template_directory() . '/inc/managed-pages.php';
 
