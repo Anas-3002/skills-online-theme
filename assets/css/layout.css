@@ -63,6 +63,7 @@
 .so-site .e-con.mb-space-lg, .so-site .elementor-widget.mb-space-lg, .so-site .elementor img.mb-space-lg, .so-site .e-div-block.mb-space-lg { margin-bottom:1.5rem !important; }
 .so-site .e-con.mb-space-md, .so-site .elementor-widget.mb-space-md, .so-site .elementor img.mb-space-md, .so-site .e-div-block.mb-space-md { margin-bottom:1rem !important; }
 .so-site .e-con.mb-space-sm, .so-site .elementor-widget.mb-space-sm, .so-site .elementor img.mb-space-sm, .so-site .e-div-block.mb-space-sm { margin-bottom:.5rem !important; }
+.so-site .e-con.mb-space-xl, .so-site .elementor-widget.mb-space-xl, .so-site .elementor img.mb-space-xl, .so-site .e-div-block.mb-space-xl { margin-bottom:2.5rem !important; }
 .so-site .e-con.mb-space-xs, .so-site .elementor-widget.mb-space-xs, .so-site .elementor img.mb-space-xs, .so-site .e-div-block.mb-space-xs { margin-bottom:.25rem !important; }
 .so-site .e-con.min-w-0, .so-site .elementor-widget.min-w-0, .so-site .elementor img.min-w-0, .so-site .e-div-block.min-w-0 { min-width:0 !important; }
 .so-site .e-con.ml-space-xs, .so-site .elementor-widget.ml-space-xs, .so-site .elementor img.ml-space-xs, .so-site .e-div-block.ml-space-xs { margin-left:.25rem !important; }
@@ -75,6 +76,8 @@
 .so-site .e-con.mx-auto, .so-site .elementor-widget.mx-auto, .so-site .elementor img.mx-auto, .so-site .e-div-block.mx-auto { margin-left:auto;margin-right:auto !important; }
 .so-site .e-con.my-space-lg, .so-site .elementor-widget.my-space-lg, .so-site .elementor img.my-space-lg, .so-site .e-div-block.my-space-lg { margin-bottom:1.5rem;margin-top:1.5rem !important; }
 .so-site .e-con.object-contain, .so-site .elementor-widget.object-contain, .so-site .elementor img.object-contain, .so-site .e-div-block.object-contain { object-fit:contain !important; }
+.so-site .e-con.order-1, .so-site .elementor-widget.order-1, .so-site .elementor img.order-1, .so-site .e-div-block.order-1 { order:1 !important; }
+.so-site .e-con.order-2, .so-site .elementor-widget.order-2, .so-site .elementor img.order-2, .so-site .e-div-block.order-2 { order:2 !important; }
 .so-site .e-con.overflow-hidden, .so-site .elementor-widget.overflow-hidden, .so-site .elementor img.overflow-hidden, .so-site .e-div-block.overflow-hidden { overflow:hidden !important; }
 .so-site .e-con.overflow-x-auto, .so-site .elementor-widget.overflow-x-auto, .so-site .elementor img.overflow-x-auto, .so-site .e-div-block.overflow-x-auto { overflow-x:auto !important; }
 .so-site .e-con.pointer-events-none, .so-site .elementor-widget.pointer-events-none, .so-site .elementor img.pointer-events-none, .so-site .e-div-block.pointer-events-none { pointer-events:none !important; }
@@ -83,9 +86,11 @@
 .so-site .e-con.right-10, .so-site .elementor-widget.right-10, .so-site .elementor img.right-10, .so-site .e-div-block.right-10 { right:2.5rem !important; }
 .so-site .e-con.right-3\.5, .so-site .elementor-widget.right-3\.5, .so-site .elementor img.right-3\.5, .so-site .e-div-block.right-3\.5 { right:.875rem !important; }
 .so-site .e-con.right-6, .so-site .elementor-widget.right-6, .so-site .elementor img.right-6, .so-site .e-div-block.right-6 { right:1.5rem !important; }
+.so-site .e-con.sticky, .so-site .elementor-widget.sticky, .so-site .elementor img.sticky, .so-site .e-div-block.sticky { position:sticky !important; }
 .so-site .e-con.text-center, .so-site .elementor-widget.text-center, .so-site .elementor img.text-center, .so-site .e-div-block.text-center { text-align:center !important; }
 .so-site .e-con.text-left, .so-site .elementor-widget.text-left, .so-site .elementor img.text-left, .so-site .e-div-block.text-left { text-align:left !important; }
 .so-site .e-con.top-0, .so-site .elementor-widget.top-0, .so-site .elementor img.top-0, .so-site .e-div-block.top-0 { top:0 !important; }
+.so-site .e-con.top-28, .so-site .elementor-widget.top-28, .so-site .elementor img.top-28, .so-site .e-div-block.top-28 { top:7rem !important; }
 .so-site .e-con.top-48, .so-site .elementor-widget.top-48, .so-site .elementor img.top-48, .so-site .e-div-block.top-48 { top:12rem !important; }
 .so-site .e-con.w-1\.5, .so-site .elementor-widget.w-1\.5, .so-site .elementor img.w-1\.5, .so-site .e-div-block.w-1\.5 { width:.375rem !important; }
 .so-site .e-con.w-10, .so-site .elementor-widget.w-10, .so-site .elementor img.w-10, .so-site .e-div-block.w-10 { width:2.5rem !important; }
@@ -110,6 +115,7 @@
   .so-site .e-con.sm\:flex-row, .so-site .elementor-widget.sm\:flex-row, .so-site .elementor img.sm\:flex-row, .so-site .e-div-block.sm\:flex-row { flex-direction:row !important; }
   .so-site .e-con.sm\:grid-cols-2, .so-site .elementor-widget.sm\:grid-cols-2, .so-site .elementor img.sm\:grid-cols-2, .so-site .e-div-block.sm\:grid-cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
   .so-site .e-con.sm\:grid-cols-3, .so-site .elementor-widget.sm\:grid-cols-3, .so-site .elementor img.sm\:grid-cols-3, .so-site .e-div-block.sm\:grid-cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+  .so-site .e-con.sm\:grid-cols-4, .so-site .elementor-widget.sm\:grid-cols-4, .so-site .elementor img.sm\:grid-cols-4, .so-site .e-div-block.sm\:grid-cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
   .so-site .e-con.sm\:grid-cols-5, .so-site .elementor-widget.sm\:grid-cols-5, .so-site .elementor img.sm\:grid-cols-5, .so-site .e-div-block.sm\:grid-cols-5 { grid-template-columns:repeat(5,minmax(0,1fr)) !important; }
   .so-site .e-con.sm\:inline, .so-site .elementor-widget.sm\:inline, .so-site .elementor img.sm\:inline, .so-site .e-div-block.sm\:inline { display:inline !important; }
   .so-site .e-con.sm\:inline-flex, .so-site .elementor-widget.sm\:inline-flex, .so-site .elementor img.sm\:inline-flex, .so-site .e-div-block.sm\:inline-flex { display:inline-flex !important; }
@@ -135,8 +141,10 @@
   .so-site .e-con.md\:w-auto, .so-site .elementor-widget.md\:w-auto, .so-site .elementor img.md\:w-auto, .so-site .e-div-block.md\:w-auto { width:auto !important; }
 }
 @media (min-width: 1024px) {
+  .so-site .e-con.lg\:col-span-4, .so-site .elementor-widget.lg\:col-span-4, .so-site .elementor img.lg\:col-span-4, .so-site .e-div-block.lg\:col-span-4 { grid-column:span 4/span 4 !important; }
   .so-site .e-con.lg\:col-span-5, .so-site .elementor-widget.lg\:col-span-5, .so-site .elementor img.lg\:col-span-5, .so-site .e-div-block.lg\:col-span-5 { grid-column:span 5/span 5 !important; }
   .so-site .e-con.lg\:col-span-7, .so-site .elementor-widget.lg\:col-span-7, .so-site .elementor img.lg\:col-span-7, .so-site .e-div-block.lg\:col-span-7 { grid-column:span 7/span 7 !important; }
+  .so-site .e-con.lg\:col-span-8, .so-site .elementor-widget.lg\:col-span-8, .so-site .elementor img.lg\:col-span-8, .so-site .e-div-block.lg\:col-span-8 { grid-column:span 8/span 8 !important; }
   .so-site .e-con.lg\:flex-row, .so-site .elementor-widget.lg\:flex-row, .so-site .elementor img.lg\:flex-row, .so-site .e-div-block.lg\:flex-row { flex-direction:row !important; }
   .so-site .e-con.lg\:grid-cols-1, .so-site .elementor-widget.lg\:grid-cols-1, .so-site .elementor img.lg\:grid-cols-1, .so-site .e-div-block.lg\:grid-cols-1 { grid-template-columns:repeat(1,minmax(0,1fr)) !important; }
   .so-site .e-con.lg\:grid-cols-12, .so-site .elementor-widget.lg\:grid-cols-12, .so-site .elementor img.lg\:grid-cols-12, .so-site .e-div-block.lg\:grid-cols-12 { grid-template-columns:repeat(12,minmax(0,1fr)) !important; }
@@ -144,4 +152,6 @@
   .so-site .e-con.lg\:grid-cols-4, .so-site .elementor-widget.lg\:grid-cols-4, .so-site .elementor img.lg\:grid-cols-4, .so-site .e-div-block.lg\:grid-cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
   .so-site .e-con.lg\:items-end, .so-site .elementor-widget.lg\:items-end, .so-site .elementor img.lg\:items-end, .so-site .e-div-block.lg\:items-end { align-items:flex-end !important; }
   .so-site .e-con.lg\:justify-between, .so-site .elementor-widget.lg\:justify-between, .so-site .elementor img.lg\:justify-between, .so-site .e-div-block.lg\:justify-between { justify-content:space-between !important; }
+  .so-site .e-con.lg\:order-1, .so-site .elementor-widget.lg\:order-1, .so-site .elementor img.lg\:order-1, .so-site .e-div-block.lg\:order-1 { order:1 !important; }
+  .so-site .e-con.lg\:order-2, .so-site .elementor-widget.lg\:order-2, .so-site .elementor img.lg\:order-2, .so-site .e-div-block.lg\:order-2 { order:2 !important; }
 }
