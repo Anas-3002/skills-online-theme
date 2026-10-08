@@ -140,7 +140,7 @@
               Trigger autonomous data package generators or exercise right-to-be-forgotten petitions directly from your session.
             </p>
 <div class="space-y-space-xs pt-space-xs">
-<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 px-space-md rounded-lg font-label-lg text-label-lg font-semibold hover:bg-primary-container transition-all active:scale-[0.99] shadow-sm" onclick="simulateExportModal()">
+<button class="w-full flex items-center justify-center gap-2 bg-primary text-on-primary py-2.5 px-space-md rounded-lg font-label-lg text-label-lg font-semibold hover:bg-primary-container transition-all active:scale-[0.99] shadow-sm" >
 <span class="material-symbols-outlined text-base">file_download</span>
                 Request Complete Data Export
               </button>
@@ -238,7 +238,7 @@
 </div>
 <div class="flex items-start gap-3">
 <span class="material-symbols-outlined text-tertiary-fixed-dim shrink-0 mt-0.5">check_circle</span>
-<p class="font-body-md text-body-md text-on-surface"><strong>Cryptographic Credential Verification:</strong> Emitting tamper-evident public certificates registered on immutable key chains for prospective employers.</p>
+<p class="font-body-md text-body-md text-on-surface"><strong>Credential verification:</strong> completed programmes are recorded on your learner record and can be confirmed to an employer on request.</p>
 </div>
 </div>
 </section>
@@ -437,7 +437,7 @@
                 </p>
 <div class="pt-space-xs space-y-1 font-body-sm text-body-sm text-on-surface">
 <p class="flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">email</span><strong>Contact:</strong> <a class="underline hover:text-primary" href="/contact/">use the contact form</a></p>
-<p class="flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">schedule</span><strong>Response SLA:</strong> &lt; 24 Business Hours</p>
+<p class="flex items-center gap-2"><span class="material-symbols-outlined text-base text-primary">schedule</span><strong>Response target:</strong> one business day</p>
 </div>
 </div>
 <div class="bg-surface-container-low p-space-md rounded-xl space-y-space-xs flex flex-col justify-between">
@@ -465,31 +465,31 @@
 <div class="space-y-space-sm" id="privacy-faq-accordion">
 <!-- Item 1 -->
 <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200">
-<button class="w-full flex items-center justify-between p-space-md text-left font-headline-sm text-headline-sm text-on-surface font-semibold hover:bg-surface-container-low/50 transition-colors" onclick="toggleFaq(this)">
+<button class="w-full flex items-center justify-between p-space-md text-left font-headline-sm text-headline-sm text-on-surface font-semibold hover:bg-surface-container-low/50 transition-colors so-accordion-trigger" >
 <span class="">Does Skills Online train AI models on my private code?</span>
-<span class="material-symbols-outlined text-on-surface-variant transition-transform transform duration-200 faq-chevron">expand_more</span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform transform duration-200 faq-chevron so-accordion-icon">expand_more</span>
 </button>
-<div class="faq-content hidden px-space-md pb-space-md text-body-md font-body-md text-on-surface-variant border-t border-surface-container-high/40 pt-space-sm">
+<div class="hidden so-accordion-body px-space-md pb-space-md text-body-md font-body-md text-on-surface-variant border-t border-surface-container-high/40 pt-space-sm so-accordion-body">
 <p class=""><strong>Absolutely not.</strong> Your submissions are stored in your own learner account on this site and are not used to train models. We do not sell or share them, and we ask the same of any service provider we work with.</p>
 </div>
 </div>
 <!-- Item 2 -->
 <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200">
-<button class="w-full flex items-center justify-between p-space-md text-left font-headline-sm text-headline-sm text-on-surface font-semibold hover:bg-surface-container-low/50 transition-colors" onclick="toggleFaq(this)">
+<button class="w-full flex items-center justify-between p-space-md text-left font-headline-sm text-headline-sm text-on-surface font-semibold hover:bg-surface-container-low/50 transition-colors so-accordion-trigger" >
 <span class="">How do I request complete data erasure under GDPR Article 17?</span>
-<span class="material-symbols-outlined text-on-surface-variant transition-transform transform duration-200 faq-chevron">expand_more</span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform transform duration-200 faq-chevron so-accordion-icon">expand_more</span>
 </button>
-<div class="faq-content hidden px-space-md pb-space-md text-body-md font-body-md text-on-surface-variant border-t border-surface-container-high/40 pt-space-sm">
-<p class="">You can execute total account deletion and cryptographic data purging via the Student Security Settings panel or by emailing <code class="text-primary font-mono text-sm">dpo@skillsonline.edu</code>. When a verified erasure request is actioned we delete your account records and submissions from the site. Backup copies are rotated out on the hosting provider's normal schedule.</p>
+<div class="hidden so-accordion-body px-space-md pb-space-md text-body-md font-body-md text-on-surface-variant border-t border-surface-container-high/40 pt-space-sm so-accordion-body">
+<p class="">You can request deletion of your account and the data attached to it through the contact form, and we action verified requests. When a verified erasure request is actioned we delete your account records and submissions from the site. Backup copies are rotated out on the hosting provider's normal schedule.</p>
 </div>
 </div>
 <!-- Item 3 -->
 <div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden transition-all duration-200">
-<button class="w-full flex items-center justify-between p-space-md text-left font-headline-sm text-headline-sm text-on-surface font-semibold hover:bg-surface-container-low/50 transition-colors" onclick="toggleFaq(this)">
+<button class="w-full flex items-center justify-between p-space-md text-left font-headline-sm text-headline-sm text-on-surface font-semibold hover:bg-surface-container-low/50 transition-colors so-accordion-trigger" >
 <span class="">Who can access my video mock interview recordings?</span>
-<span class="material-symbols-outlined text-on-surface-variant transition-transform transform duration-200 faq-chevron">expand_more</span>
+<span class="material-symbols-outlined text-on-surface-variant transition-transform transform duration-200 faq-chevron so-accordion-icon">expand_more</span>
 </button>
-<div class="faq-content hidden px-space-md pb-space-md text-body-md font-body-md text-on-surface-variant border-t border-surface-container-high/40 pt-space-sm">
+<div class="hidden so-accordion-body px-space-md pb-space-md text-body-md font-body-md text-on-surface-variant border-t border-surface-container-high/40 pt-space-sm so-accordion-body">
 <p class="">Only you and the specific assigned Staff+ mentor who conducted the session possess access permissions. Company hiring managers and external recruiters cannot view any recordings unless you explicitly export and attach them into your candidate submission packet.</p>
 </div>
 </div>
@@ -500,61 +500,5 @@
 </div>
 </div>
 <!-- Interactive Client-side Logic -->
-<script>
-    // FAQ Accordion Toggle
-    function toggleFaq(button) {
-      const content = button.nextElementSibling;
-      const chevron = button.querySelector('.faq-chevron');
-      const isHidden = content.classList.contains('hidden');
-      
-      // Close all others
-      document.querySelectorAll('#privacy-faq-accordion .faq-content').forEach(el => el.classList.add('hidden'));
-      document.querySelectorAll('#privacy-faq-accordion .faq-chevron').forEach(el => el.classList.remove('rotate-180'));
 
-      if (isHidden) {
-        content.classList.remove('hidden');
-        chevron.classList.add('rotate-180');
-      }
-    }
-
-    // Modal Simulation for Data Export
-    function simulateExportModal() {
-      const confirmed = confirm("Generate GDPR/CCPA Personal Archive?\n\nThis will assemble a machine-readable copy of the data we hold about you containing your active courses, sandbox telemetry, and certificate signatures. A download notification will be dispatched to your account email within minutes.");
-      if (confirmed) {
-        alert("Export scheduled! Queue ID: #EX-889104. Our automated pipeline has begun generating your archive package.");
-      }
-    }
-
-    // ScrollSpy for Active Sidebar Link
-    document.addEventListener('DOMContentLoaded', () => {
-      const sections = document.querySelectorAll('main section[id]');
-      const navLinks = document.querySelectorAll('#legal-toc a');
-
-      window.addEventListener('scroll', () => {
-        let current = '';
-        sections.forEach(section => {
-          const sectionTop = section.offsetTop - 180;
-          if (window.pageYOffset >= sectionTop) {
-            current = section.getAttribute('id');
-          }
-        });
-
-        navLinks.forEach(link => {
-          link.classList.remove('text-primary', 'bg-primary-fixed/40', 'font-semibold');
-          link.classList.add('text-on-surface-variant');
-          const chevron = link.querySelector('.material-symbols-outlined');
-          if (chevron) chevron.classList.add('opacity-0');
-
-          if (link.getAttribute('href') === '#' + current) {
-            link.classList.add('text-primary', 'bg-primary-fixed/40', 'font-semibold');
-            link.classList.remove('text-on-surface-variant');
-            if (chevron) {
-              chevron.classList.remove('opacity-0');
-              chevron.classList.add('opacity-100');
-            }
-          }
-        });
-      });
-    });
-  </script>
 </div>

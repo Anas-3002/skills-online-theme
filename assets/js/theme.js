@@ -66,15 +66,15 @@
 
   /* ------------------------------------------------------------ accordion -- */
   function initAccordions() {
-    $$('[data-so-accordion]').forEach(function (item) {
-      var trigger = $('[data-so-accordion-trigger]', item);
-      var body = $('[data-so-accordion-body]', item);
+    $$('[data-so-accordion], .so-accordion').forEach(function (item) {
+      var trigger = $('[data-so-accordion-trigger], .so-accordion-trigger', item);
+      var body = $('[data-so-accordion-body], .so-accordion-body', item);
       if (!trigger || !body) return;
       trigger.setAttribute('aria-expanded', body.classList.contains('hidden') ? 'false' : 'true');
       trigger.addEventListener('click', function () {
         var hidden = body.classList.toggle('hidden');
         trigger.setAttribute('aria-expanded', hidden ? 'false' : 'true');
-        var icon = $('[data-so-accordion-icon]', item);
+        var icon = $('[data-so-accordion-icon], .so-accordion-icon', item);
         if (icon) icon.classList.toggle('rotate-180', !hidden);
       });
     });
@@ -96,8 +96,17 @@
       off.classList.add('text-on-surface-variant');
       on.setAttribute('aria-pressed', 'true');
       off.setAttribute('aria-pressed', 'false');
-      $$('.price-display').forEach(function (el) { el.textContent = el.getAttribute('data-' + mode); });
-      $$('.period-display').forEach(function (el) { el.textContent = el.getAttribute('data-' + mode); });
+      $$('.price-display, .period-display').forEach(function (el) {
+        var m = el.querySelector('.so-when-monthly');
+        var u = el.querySelector('.so-when-upfront');
+        if (m && u) {
+          m.classList.toggle('hidden', mode !== 'monthly');
+          u.classList.toggle('hidden', mode !== 'upfront');
+          return;
+        }
+        var v = el.getAttribute('data-' + mode);
+        if (v !== null) el.textContent = v;
+      });
     }
     monthly.addEventListener('click', function () { set('monthly'); });
     upfront.addEventListener('click', function () { set('upfront'); });
@@ -106,12 +115,20 @@
 
   /* ------------------------------------------------------------ track filter -- */
   function initFilters() {
-    var chips = $$('[data-so-filter]');
+    var chips = $$('[data-so-filter], .so-filter');
     if (!chips.length) return;
-    var items = $$('[data-so-track]');
+    var items = $$('[data-so-track], .so-track');
+    function valueOf(el, prefix, attr) {
+      var v = el.getAttribute(attr);
+      if (v) return v;
+      for (var i = 0; i < el.classList.length; i++) {
+        if (el.classList[i].indexOf(prefix) === 0) return el.classList[i].slice(prefix.length);
+      }
+      return '';
+    }
     function apply(value) {
       chips.forEach(function (c) {
-        var on = c.getAttribute('data-so-filter') === value;
+        var on = valueOf(c, 'so-filter-', 'data-so-filter') === value;
         c.classList.toggle('bg-primary-container', on);
         c.classList.toggle('text-on-primary', on);
         c.classList.toggle('border-primary-container', on);
@@ -120,19 +137,27 @@
         c.setAttribute('aria-pressed', on ? 'true' : 'false');
       });
       items.forEach(function (item) {
-        var tags = (item.getAttribute('data-so-track') || '').split(/\s+/);
+        var tags = [];
+        var attr = item.getAttribute('data-so-track');
+        if (attr) {
+          tags = attr.split(/\s+/);
+        } else {
+          item.classList.forEach(function (c) {
+            if (c.indexOf('so-track-') === 0) tags.push(c.slice('so-track-'.length));
+          });
+        }
         item.classList.toggle('hidden', value !== 'all' && tags.indexOf(value) === -1);
       });
     }
     chips.forEach(function (chip) {
-      chip.addEventListener('click', function () { apply(chip.getAttribute('data-so-filter')); });
+      chip.addEventListener('click', function () { apply(valueOf(chip, 'so-filter-', 'data-so-filter')); });
     });
     apply('all');
   }
 
   /* ---------------------------------------------------------------- modals -- */
   function initModals() {
-    var opens = $$('[data-so-modal-open]');
+    var opens = $$('[data-so-modal-open], .so-open-video');
     if (!opens.length) return;
     var lastFocus = null;
 
@@ -144,7 +169,7 @@
     opens.forEach(function (btn) {
       btn.addEventListener('click', function (e) {
         e.preventDefault();
-        var modal = doc.getElementById(btn.getAttribute('data-so-modal-open'));
+        var modal = doc.getElementById(btn.getAttribute('data-so-modal-open') || 'video-modal');
         if (!modal) return;
         lastFocus = doc.activeElement;
         modal.classList.remove('hidden');

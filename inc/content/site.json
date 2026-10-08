@@ -8,7 +8,7 @@
   "template": "elementor_canvas",
   "faq": [],
   "posts_page": false,
-  "bytes": 65611
+  "bytes": 65431
  },
  {
   "slug": "courses-and-tracks",
@@ -19,7 +19,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 28283
+  "bytes": 28018
  },
  {
   "slug": "applied-ai-and-machine-learning",
@@ -30,7 +30,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 22541
+  "bytes": 22121
  },
  {
   "slug": "software-engineering",
@@ -41,7 +41,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 22178
+  "bytes": 21758
  },
  {
   "slug": "cloud-and-devops",
@@ -52,7 +52,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 22266
+  "bytes": 21846
  },
  {
   "slug": "tech-leadership",
@@ -63,7 +63,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 22414
+  "bytes": 21994
  },
  {
   "slug": "enterprise",
@@ -74,7 +74,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 13353
+  "bytes": 13185
  },
  {
   "slug": "pillars-and-outcomes",
@@ -85,7 +85,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 19360
+  "bytes": 19192
  },
  {
   "slug": "pricing",
@@ -96,7 +96,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 9352
+  "bytes": 9184
  },
  {
   "slug": "reviews",
@@ -118,7 +118,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 7149
+  "bytes": 6981
  },
  {
   "slug": "blog-and-insights",
@@ -151,7 +151,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 6581
+  "bytes": 6413
  },
  {
   "slug": "results-and-disclosures",
@@ -173,7 +173,7 @@
   "template": "default",
   "faq": [],
   "posts_page": false,
-  "bytes": 39968
+  "bytes": 37525
  },
  {
   "slug": "terms-of-service",

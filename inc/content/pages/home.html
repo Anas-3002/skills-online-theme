@@ -34,8 +34,7 @@
 <span class="">Explore the tracks</span>
 <span class="material-symbols-outlined text-base">arrow_forward</span>
 </a>
-<button class="inline-flex items-center justify-center gap-space-sm bg-surface-container-lowest text-on-surface font-label-lg text-label-lg px-space-lg py-3.5 rounded-lg shadow-sm hover:bg-surface-container transition-all text-center" onclick="document.getElementById('video-modal').classList.remove('hidden')">
-<span class="w-7 h-7 rounded-full bg-secondary-container/30 text-on-secondary-container flex items-center justify-center">
+<button class="inline-flex items-center justify-center gap-space-sm bg-surface-container-lowest text-on-surface font-label-lg text-label-lg px-space-lg py-3.5 rounded-lg shadow-sm hover:bg-surface-container transition-all text-center so-open-video"><span class="w-7 h-7 rounded-full bg-secondary-container/30 text-on-secondary-container flex items-center justify-center">
 <span class="material-symbols-outlined text-sm font-bold">play_arrow</span>
 </span>
 <span class="">Watch 3-Min Class Preview</span>
@@ -165,11 +164,11 @@
 </div>
 <!-- Filter Category Tabs -->
 <div class="flex flex-wrap gap-space-xs bg-surface-container p-1 rounded-lg">
-<button type="button" data-so-filter="all" aria-pressed="false" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary">All Tracks</button>
-<button type="button" data-so-filter="se" aria-pressed="false" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary">Software Eng</button>
-<button type="button" data-so-filter="ai" aria-pressed="false" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary">AI &amp; Data</button>
-<button type="button" data-so-filter="ux" aria-pressed="false" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary">Product &amp; UX</button>
-<button type="button" data-so-filter="devops" aria-pressed="false" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary">DevOps &amp; Cloud</button>
+<button type="button" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary so-filter so-filter-all">All Tracks</button>
+<button type="button" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary so-filter so-filter-se">Software Eng</button>
+<button type="button" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary so-filter so-filter-ai">AI &amp; Data</button>
+<button type="button" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary so-filter so-filter-ux">Product &amp; UX</button>
+<button type="button" class="px-space-md py-1.5 rounded-full border font-label-md text-label-md transition-colors bg-surface-container-lowest text-on-surface-variant border-outline-variant hover:border-primary hover:text-primary so-filter so-filter-devops">DevOps &amp; Cloud</button>
 </div>
 </div>
 <!-- Course Cards Grid -->
@@ -769,10 +768,10 @@ Illustrative composite
         </p>
 <!-- Monthly vs Upfront Billing Switcher -->
 <div class="pt-space-sm inline-flex items-center bg-surface-container p-1 rounded-full">
-<button class="px-space-md py-1.5 rounded-full font-label-md text-label-md bg-primary-container text-on-primary font-bold shadow-sm transition-all" id="btn-monthly" onclick="togglePricing('monthly')">
+<button class="px-space-md py-1.5 rounded-full font-label-md text-label-md bg-primary-container text-on-primary font-bold shadow-sm transition-all" id="btn-monthly">
             Monthly Installments
           </button>
-<button class="px-space-md py-1.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" id="btn-upfront" onclick="togglePricing('upfront')">
+<button class="px-space-md py-1.5 rounded-full font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-all" id="btn-upfront">
             Pay Upfront (Save 15%)
           </button>
 </div>
@@ -788,8 +787,8 @@ Illustrative composite
 </div>
 <div class="py-space-xs">
 <div class="flex items-baseline gap-1">
-<span class="font-display-xl text-display-xl text-on-surface font-extrabold price-display" data-monthly="$399" data-upfront="$1,999">$399</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant period-display" data-monthly="/ month" data-upfront=" upfront">/ month</span>
+<span class="font-display-xl text-display-xl text-on-surface font-extrabold price-display"><span class="so-when-monthly">$399</span><span class="so-when-upfront hidden">$1,999</span></span>
+<span class="font-body-sm text-body-sm text-on-surface-variant period-display"><span class="so-when-monthly">/ month</span><span class="so-when-upfront hidden"> upfront</span></span>
 </div>
 <div class="font-label-md text-label-md text-tertiary font-semibold mt-1">Flexible cancel anytime</div>
 </div>
@@ -838,8 +837,8 @@ Illustrative composite
 </div>
 <div class="py-space-xs">
 <div class="flex items-baseline gap-1">
-<span class="font-display-xl text-display-xl text-primary font-extrabold price-display" data-monthly="$799" data-upfront="$3,499">$799</span>
-<span class="font-body-sm text-body-sm text-on-surface-variant period-display" data-monthly="/ month (6 mo)" data-upfront=" upfront">/ month (6 mo)</span>
+<span class="font-display-xl text-display-xl text-primary font-extrabold price-display"><span class="so-when-monthly">$799</span><span class="so-when-upfront hidden">$3,499</span></span>
+<span class="font-body-sm text-body-sm text-on-surface-variant period-display"><span class="so-when-monthly">/ month (6 mo)</span><span class="so-when-upfront hidden"> upfront</span></span>
 </div>
 <div class="font-label-md text-label-md text-tertiary font-bold mt-1">Backed by 100% Money-Back Job Guarantee</div>
 </div>
@@ -967,52 +966,52 @@ Illustrative composite
 </div>
 <div class="space-y-space-sm">
 <!-- FAQ 1 -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden" data-so-accordion>
-<button type="button" data-so-accordion-trigger class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors" >
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden so-accordion">
+<button type="button" class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors so-accordion-trigger" >
 <span class="">What are the prerequisite technical backgrounds required?</span>
-<span class="material-symbols-outlined text-xl transition-transform duration-200" data-so-accordion-icon aria-hidden="true">expand_more</span>
+<span class="material-symbols-outlined text-xl transition-transform duration-200 so-accordion-icon" aria-hidden="true">expand_more</span>
 </button>
-<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs" data-so-accordion-body>
+<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs so-accordion-body">
             While intermediate tracks require basic command-line familiarity and fundamentals of any language (Python, JavaScript, etc.), we also provide a comprehensive 4-week Pre-Flight Foundations module included at zero additional cost for career changers.
           </div>
 </div>
 <!-- FAQ 2 -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden" data-so-accordion>
-<button type="button" data-so-accordion-trigger class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors" >
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden so-accordion">
+<button type="button" class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors so-accordion-trigger" >
 <span class="">How much time commitment is needed per week?</span>
-<span class="material-symbols-outlined text-xl transition-transform duration-200" data-so-accordion-icon aria-hidden="true">expand_more</span>
+<span class="material-symbols-outlined text-xl transition-transform duration-200 so-accordion-icon" aria-hidden="true">expand_more</span>
 </button>
-<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs" data-so-accordion-body>
+<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs so-accordion-body">
             Part-time cohorts are engineered for working professionals and require 12 to 15 hours per week (flexible evening/weekend schedules). Full-time immersion tracks require approximately 35 to 40 hours per week of synchronous and project work.
           </div>
 </div>
 <!-- FAQ 3 -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden" data-so-accordion>
-<button type="button" data-so-accordion-trigger class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors" >
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden so-accordion">
+<button type="button" class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors so-accordion-trigger" >
 <span class="">How does the 100% Tuition Placement Guarantee work?</span>
-<span class="material-symbols-outlined text-xl transition-transform duration-200" data-so-accordion-icon aria-hidden="true">expand_more</span>
+<span class="material-symbols-outlined text-xl transition-transform duration-200 so-accordion-icon" aria-hidden="true">expand_more</span>
 </button>
-<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs" data-so-accordion-body>
+<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs so-accordion-body">
             Graduates of our Mentor-Led Career Tracks who complete capstones, attend mock interviews, and submit job applications through our career network are guaranteed a qualifying tech offer within 180 days of finishing, or their entire paid tuition is refunded.
           </div>
 </div>
 <!-- FAQ 4 -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden" data-so-accordion>
-<button type="button" data-so-accordion-trigger class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors" >
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden so-accordion">
+<button type="button" class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors so-accordion-trigger" >
 <span class="">Can my current employer sponsor or reimburse my tuition?</span>
-<span class="material-symbols-outlined text-xl transition-transform duration-200" data-so-accordion-icon aria-hidden="true">expand_more</span>
+<span class="material-symbols-outlined text-xl transition-transform duration-200 so-accordion-icon" aria-hidden="true">expand_more</span>
 </button>
-<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs" data-so-accordion-body>
+<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs so-accordion-body">
             Yes! Approximately 43% of our students receive partial or complete tuition reimbursement from employer L&amp;D budgets. We provide automated invoice breakdowns, formal syllabus packets, and CPD verification letters for company benefits administrators.
           </div>
 </div>
 <!-- FAQ 5 -->
-<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden" data-so-accordion>
-<button type="button" data-so-accordion-trigger class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors" >
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden so-accordion">
+<button type="button" class="w-full p-space-md text-left flex items-center justify-between font-headline-sm text-headline-sm text-on-surface font-semibold hover:text-primary transition-colors so-accordion-trigger" >
 <span class="">Who are the mentors and how are they vetted?</span>
-<span class="material-symbols-outlined text-xl transition-transform duration-200" data-so-accordion-icon aria-hidden="true">expand_more</span>
+<span class="material-symbols-outlined text-xl transition-transform duration-200 so-accordion-icon" aria-hidden="true">expand_more</span>
 </button>
-<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs" data-so-accordion-body>
+<div class="hidden px-space-md pb-space-md font-body-md text-body-md text-on-surface-variant border-t border-surface-container pt-space-xs so-accordion-body">
             Our mentors are vetted Staff, Principal, and Lead Engineers currently practicing at firms such as Google, Meta, Stripe, Netflix, and Datadog. Only the top 3% of mentor applicants are selected through our pedagogical assessment protocol.
           </div>
 </div>
@@ -1024,7 +1023,7 @@ Illustrative composite
 <div class="absolute bottom-0 -left-10 w-80 h-80 rounded-full bg-secondary-container/20 blur-3xl pointer-events-none"></div>
 <div class="max-w-5xl mx-auto px-margin-mobile md:px-margin relative z-10 space-y-space-lg text-center">
 <div class="space-y-space-xs max-w-3xl mx-auto">
-<span class="font-label-caps text-label-caps text-secondary-fixed bg-secondary-fixed/20 px-space-sm py-1 rounded-full uppercase tracking-wider font-bold" data-so-countdown-label>LIMITED SEATS • ENROLLMENT OPEN</span>
+<span class="font-label-caps text-label-caps text-secondary-fixed bg-secondary-fixed/20 px-space-sm py-1 rounded-full uppercase tracking-wider font-bold">LIMITED SEATS • ENROLLMENT OPEN</span>
 <h2 class="font-display-xl text-display-xl text-surface font-extrabold tracking-tight">
           Ready to elevate your career? Your next chapter starts Monday.
         </h2>
